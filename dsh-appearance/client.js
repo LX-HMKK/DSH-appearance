@@ -335,9 +335,21 @@ window.__ModuleLoader__.load({
       return options.find(function (option) { return option.family && option.family.toLowerCase() === head }) || null
     }
 
-    /** 配色预设：每种给出浅色/深色两套 token 值；default 不覆盖任何 token */
+    /**
+     * 配色预设：每种给出浅色/深色两套 token 值；default 不覆盖任何 token。
+     *
+     * onedark = Atom One Dark / One Light 的**界面化取色**：底色、强调色、边框沿用原版
+     * （#282C34 / #61AFEF / #3E4451），只把正文与次级文字提亮到满足 WCAG（原版正文
+     * #ABB2BF 在 #282C34 上只有 6.6:1，达不到本仓库 7:1 的正文标准）。同源明色版对应
+     * One Light。
+     */
     const PRESETS = [
       { id: 'default', key: 'preset.default', swatch: '#4176E6' },
+      {
+        id: 'onedark', key: 'preset.onedark', swatch: '#61AFEF',
+        light: { accent: '#4078F2', link: '#4078F2', base: '#FAFAFA', layer1: '#F2F2F3', layer2: '#E7E7E9', ink: '#383A42', secondary: '#696C77', border: '#D8D8DA' },
+        dark: { accent: '#61AFEF', link: '#61AFEF', base: '#282C34', layer1: '#2C313A', layer2: '#363C46', ink: '#C3C9D4', secondary: '#8E97A7', border: '#3E4451' },
+      },
       {
         id: 'graphite', key: 'preset.graphite', swatch: '#4A5568',
         light: { accent: '#4A5568', link: '#2F6FEB', base: '#FFFFFF', layer1: '#F6F7F8', layer2: '#EEF0F2', ink: '#16181D', secondary: '#5B6472', border: '#E3E6EA' },
@@ -517,6 +529,7 @@ window.__ModuleLoader__.load({
       'code.default': '默认等宽栈',
       'code.sarasa': '更纱黑体等宽',
       'preset.default': '默认',
+      'preset.onedark': 'One Dark',
       'preset.graphite': '石墨',
       'preset.deepsea': '深海',
       'preset.sand': '暖沙',
@@ -607,6 +620,7 @@ window.__ModuleLoader__.load({
       'code.default': 'Default mono stack',
       'code.sarasa': 'Sarasa Mono SC',
       'preset.default': 'Default',
+      'preset.onedark': 'One Dark',
       'preset.graphite': 'Graphite',
       'preset.deepsea': 'Deep Sea',
       'preset.sand': 'Warm Sand',

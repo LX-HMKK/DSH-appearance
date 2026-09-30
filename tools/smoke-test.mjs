@@ -135,8 +135,8 @@ try { text = render(slot.component({ store, actions, t })).join(' | '); }
 catch (error) { failures++; console.log('  FAIL  页面渲染抛错 -> ' + error.message); }
 ok('渲染出了标题', text.includes('外观增强'));
 ok('渲染出了三张卡片', text.includes('字体') && text.includes('配色') && text.includes('高级'));
-const presetLabels = ['默认', '石墨', '深海', '暖沙', '森绿', '高对比'];
-ok('渲染出了全部 6 个预设', presetLabels.every((label) => text.includes(label)), presetLabels.filter((l) => !text.includes(l)).join(',') || 'all present');
+const presetLabels = ['默认', 'One Dark', '石墨', '深海', '暖沙', '森绿', '高对比'];
+ok('渲染出了全部 7 个预设', presetLabels.every((label) => text.includes(label)), presetLabels.filter((l) => !text.includes(l)).join(',') || 'all present');
 ok('渲染出了字号步进器', /14 px/.test(text));
 const tree = slot.component({ store, actions, t });
 const collect = (node, out) => {
