@@ -154,41 +154,83 @@ window.__ModuleLoader__.load({
     /** 本机字体枚举（Chromium 的 Local Font Access）：惰性、失败即静默降级 */
     const localFonts = { status: 'idle', families: [] }
 
+    /** 家族名（小写）-> 精选条目，用来给本机字体配上中文名与字形归类 */
+    function curatedIndex(kind) {
+      const list = kind === 'code' ? CODE_FONTS : UI_FONTS
+      const index = {}
+      for (const item of list) if (item.family) index[item.family.toLowerCase()] = item
+      return index
+    }
+
+    /** 状态：跟随默认 / 系统默认 这两条与是否读到本机字体无关，永远在最上面 */
+    function baseFontOptions(kind, t) {
+      const list = kind === 'code' ? CODE_FONTS : UI_FONTS
+      return list.filter(function (item) { return item.family === '' }).map(function (item) {
+        return { id: item.key, label: t(item.key), family: '', stack: item.stack, groupKey: item.group, script: 'latin' }
+      })
+    }
+
     /**
-     * 组装某个选择器的全部选项：精选家族 + 本机已安装家族。
-     * 字体栈在这里自动生成，条目只需声明家族名。
+     * 组装选择器的选项。
+     *
+     * 原则：**只列本机真实存在的字体**——列出来的每一个都真的能用，不再拿"名字"
+     * 充当选项（没装的字体渲染出来和默认一模一样，只会让人误判）。
+     * 精选表只做三件事：给已知家族配中文名与字形归类、读不到本机字体时兜底、
+     * 以及在面板底部提示"这些推荐的没装"。
      */
-    function fontOptions(kind, t) {
+    function fontOptions(kind, t, currentStack) {
       const fallback = kind === 'code' ? CODE_FALLBACK : UI_FALLBACK
       const curated = kind === 'code' ? CODE_FONTS : UI_FONTS
-      const options = curated.map(function (item) {
-        return {
-          id: item.key || 'family:' + item.family,
-          label: item.key ? t(item.key) : item.family,
-          family: item.family,
-          stack: item.stack !== undefined ? item.stack : stackOf(item.family, fallback),
-          groupKey: item.group,
-          script: item.script || 'latin',
-        }
-      })
-      const curatedFamilies = {}
-      for (const item of curated) if (item.family) curatedFamilies[item.family.toLowerCase()] = true
-      let added = 0
-      for (const family of localFonts.families) {
-        if (added >= 300) break
-        if (curatedFamilies[family.toLowerCase()]) continue
-        added += 1
-        const cjk = isCjkFamily(family)
+      const index = curatedIndex(kind)
+      const options = baseFontOptions(kind, t)
+      const missing = []
+
+      const pushFamily = function (family, stack) {
+        const known = index[family.toLowerCase()]
+        const cjk = known ? known.script === 'cjk' : isCjkFamily(family)
+        // 注意 known.key 可能不存在（西文字体只用家族名作标签），不能直接 t(known.key)
+        const label = known && known.key ? t(known.key) : family
         options.push({
-          id: 'local:' + family,
-          label: family,
+          id: 'family:' + family,
+          label: label,
           family: family,
-          stack: stackOf(family, fallback),
+          stack: stack,
           groupKey: cjk ? 'fontGroup.localCjk' : 'fontGroup.localLatin',
           script: cjk ? 'cjk' : 'latin',
         })
       }
-      return options
+
+      if (localFonts.status === 'ready') {
+        for (const family of localFonts.families) pushFamily(family, stackOf(family, fallback))
+        for (const item of curated) {
+          if (!item.family || !item.key) continue
+          const installed = localFonts.families.some(function (family) {
+            return family.toLowerCase() === item.family.toLowerCase()
+          })
+          if (!installed) missing.push(t(item.key))
+        }
+      } else if (localFonts.status === 'unavailable') {
+        // 读不到本机字体（无此 API 或权限被拒）：退回精选表，并在面板上说明
+        for (const item of curated) {
+          if (!item.family) continue
+          options.push({
+            id: item.key || 'family:' + item.family,
+            label: item.key ? t(item.key) : item.family,
+            family: item.family,
+            stack: stackOf(item.family, fallback),
+            groupKey: item.group,
+            script: item.script || 'latin',
+          })
+        }
+      }
+
+      // 当前选中的字体必须始终可见（比如刚导入的配置、或枚举不到的家族）
+      if (currentStack && !options.some(function (option) { return option.stack === currentStack })) {
+        const head = currentStack.split(',')[0].trim().replace(/^["']|["']$/g, '')
+        if (head) pushFamily(head, currentStack)
+      }
+
+      return { options: options, missing: missing }
     }
 
     /**
@@ -309,9 +351,9 @@ window.__ModuleLoader__.load({
       subtitle: '字体、配色与字号。改动即时生效，并保存在本机 profile 配置里。',
       fonts: '字体',
       uiFont: '界面与正文字体',
-      uiFontHint: '影响整个界面与会话文字，留空表示跟随 DSH 默认。',
+      uiFontHint: '只列出本机已安装的字体；装了新字体后重新打开下拉即可看到。',
       codeFont: '代码字体',
-      codeFontHint: '影响代码块、JSON 与 diff 等等宽区域。',
+      codeFontHint: '用于代码块、JSON 与 diff，同样只列本机已安装的字体。',
       fontSize: '正文字号',
       fontSizeHint: '与「设置 → 通用」的字号是同一个值（10–22 px）。',
       colors: '配色',
@@ -372,6 +414,11 @@ window.__ModuleLoader__.load({
       'font.customName': '自定义',
       'font.search': '搜索字体…',
       'font.empty': '没有匹配的字体',
+      'font.loading': '正在读取本机字体…',
+      'font.noLocal': '读不到本机字体列表（字体权限不可用）。下面是常见字体，未安装的会回退到默认。',
+      'font.missingHint': '本机未安装的推荐字体：',
+      'font.missingMore': ' 等 {n} 款',
+      'font.missingTail': '。装好后重新打开即可选用。',
       'code.follow': '跟随 DSH 默认',
       'code.default': '默认等宽栈',
       'code.sarasa': '更纱黑体等宽',
@@ -389,9 +436,9 @@ window.__ModuleLoader__.load({
       subtitle: 'Fonts, palettes and text size. Changes apply instantly and persist in this profile.',
       fonts: 'Fonts',
       uiFont: 'Interface and body font',
-      uiFontHint: 'Applies to the whole interface and conversation text. Empty follows the DSH default.',
+      uiFontHint: 'Lists fonts installed on this device only; install one and reopen the list.',
       codeFont: 'Code font',
-      codeFontHint: 'Applies to code blocks, JSON and diffs.',
+      codeFontHint: 'Used for code blocks, JSON and diffs; installed fonts only.',
       fontSize: 'Body text size',
       fontSizeHint: 'The same value as Settings - General (10-22 px).',
       colors: 'Colors',
@@ -452,6 +499,11 @@ window.__ModuleLoader__.load({
       'font.customName': 'Custom',
       'font.search': 'Search fonts…',
       'font.empty': 'No matching font',
+      'font.loading': 'Reading installed fonts…',
+      'font.noLocal': 'Cannot read installed fonts (font permission unavailable). Common families are listed; missing ones fall back to the default.',
+      'font.missingHint': 'Recommended, not installed: ',
+      'font.missingMore': ' and {n} more',
+      'font.missingTail': '. They appear here once installed.',
       'code.follow': 'Follow DSH default',
       'code.default': 'Default mono stack',
       'code.sarasa': 'Sarasa Mono SC',
@@ -508,6 +560,7 @@ window.__ModuleLoader__.load({
       pickerSample: { flex: '0 0 auto', fontSize: 12, color: 'var(--dsw-alias-label-caption)', whiteSpace: 'nowrap' },
       pickerCheck: { flex: '0 0 auto', color: 'var(--dsw-alias-state-business-primary)', fontSize: 13, width: 12, textAlign: 'right' },
       pickerEmpty: { padding: 10, fontSize: 12, color: 'var(--dsw-alias-label-tertiary)' },
+      pickerHint: { flex: '0 0 auto', marginTop: 6, padding: '8px 4px 2px', borderTop: '1px solid var(--dsw-alias-border-l1)', fontSize: 11, lineHeight: 1.55, color: 'var(--dsw-alias-label-tertiary)' },
     }
 
     /* ---------------------------------------------------------------- 控件 */
@@ -612,8 +665,17 @@ window.__ModuleLoader__.load({
                     h('span', { style: Object.assign({}, S.pickerName, { fontFamily: preview }) }, option.label),
                     h('span', { style: Object.assign({}, S.pickerSample, { fontFamily: preview }) }, option.script === 'cjk' ? '\u6c38\u548c\u4e5d\u5e74' : 'Aa Bb 123'),
                     h('span', { style: S.pickerCheck }, selected ? '\u2713' : '')))
-              })
-            ))
+              })),
+            props.localStatus === 'idle' || props.localStatus === 'loading'
+              ? h('div', { style: S.pickerHint }, t('font.loading'))
+              : props.localStatus === 'unavailable'
+                ? h('div', { style: S.pickerHint }, t('font.noLocal'))
+                : props.missing && props.missing.length > 0
+                  ? h('div', { style: S.pickerHint },
+                      t('font.missingHint') + props.missing.slice(0, 6).join('、') +
+                      (props.missing.length > 6 ? t('font.missingMore').replace('{n}', String(props.missing.length)) : '') +
+                      t('font.missingTail'))
+                  : null)
           : null)
     }
 
@@ -699,6 +761,9 @@ window.__ModuleLoader__.load({
           setNotice(ok ? '' : t('rejected'))
         })
       }
+      const uiFonts = fontOptions('ui', t, values.uiFont)
+      const codeFonts = fontOptions('code', t, values.codeFont)
+      const localStatus = localFonts.status
       const preset = PRESETS.find(function (item) { return item.id === values.preset }) || PRESETS[0]
       const presetValues = (variant === 'light' ? preset.light : preset.dark) || {}
       const suffix = variant === 'light' ? 'Light' : 'Dark'
@@ -714,7 +779,9 @@ window.__ModuleLoader__.load({
           h(Row, { title: t('uiFont'), hint: t('uiFontHint') },
             h(FontPicker, {
               value: values.uiFont,
-              options: fontOptions('ui', t),
+              options: uiFonts.options,
+              missing: uiFonts.missing,
+              localStatus: localStatus,
               t: t,
               onOpen: actions.loadLocalFonts,
               onChange: function (stack) { commit('uiFont', stack) },
@@ -722,7 +789,9 @@ window.__ModuleLoader__.load({
           h(Row, { title: t('codeFont'), hint: t('codeFontHint') },
             h(FontPicker, {
               value: values.codeFont,
-              options: fontOptions('code', t),
+              options: codeFonts.options,
+              missing: codeFonts.missing,
+              localStatus: localStatus,
               t: t,
               onOpen: actions.loadLocalFonts,
               onChange: function (stack) { commit('codeFont', stack) },

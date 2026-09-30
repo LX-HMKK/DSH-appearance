@@ -164,7 +164,7 @@ ok('没有原生 select（下拉已自绘）', !collect(slot.component({ store, 
 await scope.set('uiFont', '');
 await scope.set('codeFont', '"JetBrains Mono", "Cascadia Code", Consolas, "Courier New", monospace');
 const text3 = render(slot.component({ store, actions, t })).join(' | ');
-ok('等宽字体同样显示家族名', text3.includes('JetBrains Mono') && !text3.includes('Cascadia Code, Consolas'), text3.slice(0, 100));
+ok('等宽字体同样显示家族名', text3.includes('JetBrains Mono') && !text3.includes('Cascadia Code, Consolas'), 'CODE_FONT_TEXT=' + text3.slice(0, 300));
 await scope.set('codeFont', '');
 
 console.log('SECTION 5: 导入 / 导出 / 重置');
