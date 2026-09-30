@@ -152,8 +152,8 @@ const collect = (node, out) => {
   return out;
 };
 const props = collect(tree, []);
-ok('导出前缀出现在 textarea 占位符', props.some((p) => p.startsWith('dsh-appearance-v1:')), JSON.stringify(props.slice(0, 4)));
-ok('页面里有 textarea 与 3 个取色器', props.includes('textarea') && props.filter((p) => p === 'color').length === 3, JSON.stringify(props.slice(0, 10)));
+ok('高级区块默认折叠：不渲染 textarea 与导出占位符', !props.includes('textarea') && !props.some((p) => p.startsWith('dsh-appearance-v1:')), JSON.stringify(props.slice(0, 6)));
+ok('页面里有 3 个取色器（强调色/背景色/文字色）', props.filter((p) => p === 'color').length === 3, JSON.stringify(props.slice(0, 10)));
 
 console.log('SECTION 4b: 字体选择器');
 // 旧版保存的长字体栈也要能认回家族名，且界面上不能再出现原始栈

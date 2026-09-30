@@ -75,6 +75,7 @@ window.__ModuleLoader__.load({
       { key: 'font.simsun', family: 'SimSun', group: 'fontGroup.cjkSerif', script: 'cjk' },
       { key: 'font.kaiti', family: 'Kaiti SC', group: 'fontGroup.cjkSerif', script: 'cjk' },
       // 西文无衬线
+      { family: 'Cascadia Mono', group: 'fontGroup.latinSans', pick: true },
       { family: 'Inter', group: 'fontGroup.latinSans', pick: true },
       { family: 'Roboto', group: 'fontGroup.latinSans' },
       { family: 'Open Sans', group: 'fontGroup.latinSans' },
@@ -435,14 +436,14 @@ window.__ModuleLoader__.load({
       ink: '文字色',
       inkHint: '正文文字颜色。',
       followPreset: '跟随预设',
-      advancedFonts: '自定义字体栈',
-      advancedFontsHint: '需要精确控制时直接写 CSS font-family；留空表示跟随默认。上面的选择器与这里同步。',
+      advancedFonts: '手动编辑字体栈',
+      advancedFontsHint: '选择器覆盖不到时才需要',
       uiFontStack: '界面与正文',
       codeFontStack: '代码',
       reset: '重置',
       advanced: '高级',
-      io: '导入 / 导出',
-      ioHint: '复制这段文本即可备份或分享；粘贴后点「应用」还原。',
+      io: '导入 / 导出设置',
+      ioHint: '备份、分享或换机迁移',
       exportBtn: '导出到文本框',
       importBtn: '应用文本框',
       resetAll: '重置全部设置',
@@ -525,14 +526,14 @@ window.__ModuleLoader__.load({
       ink: 'Ink',
       inkHint: 'Body text color.',
       followPreset: 'Follow preset',
-      advancedFonts: 'Custom font stacks',
-      advancedFontsHint: 'Write a raw CSS font-family when you need exact control. Empty follows the default; the pickers above stay in sync.',
+      advancedFonts: 'Edit font stacks manually',
+      advancedFontsHint: 'only when the pickers cannot express it',
       uiFontStack: 'Interface and body',
       codeFontStack: 'Code',
       reset: 'Reset',
       advanced: 'Advanced',
-      io: 'Import / Export',
-      ioHint: 'Copy this text to back up or share; paste it back and press Apply.',
+      io: 'Import / export settings',
+      ioHint: 'back up, share or migrate',
       exportBtn: 'Export to box',
       importBtn: 'Apply text',
       resetAll: 'Reset everything',
@@ -618,6 +619,12 @@ window.__ModuleLoader__.load({
       textarea: { width: '100%', boxSizing: 'border-box', minHeight: 120, resize: 'vertical', background: 'var(--dsw-alias-bg-layer-1)', color: 'var(--dsw-alias-label-primary)', border: '1px solid var(--dsw-alias-border-l2)', borderRadius: 'var(--dsw-radius-sm, 8px)', padding: 8, fontSize: 12, fontFamily: 'var(--ds-font-family-code)' },
       btnRow: { display: 'flex', flexWrap: 'wrap', gap: 8 },
       block: { display: 'flex', flexDirection: 'column', gap: 4 },
+      disclosure: { display: 'flex', flexDirection: 'column', gap: 10 },
+      disclosureHead: { display: 'flex', alignItems: 'baseline', gap: 8, width: '100%', boxSizing: 'border-box', padding: '6px 8px', background: 'var(--dsw-alias-bg-layer-1)', border: '1px solid var(--dsw-alias-border-l2)', borderRadius: 'var(--dsw-radius-sm, 8px)', color: 'var(--dsw-alias-label-primary)', fontSize: 13, textAlign: 'left', cursor: 'pointer' },
+      disclosureCaret: { flex: '0 0 auto', color: 'var(--dsw-alias-label-tertiary)', fontSize: 10 },
+      disclosureTitle: { flex: '0 0 auto', fontWeight: 500 },
+      disclosureHint: { flex: '1 1 auto', minWidth: 0, color: 'var(--dsw-alias-label-tertiary)', fontSize: 12 },
+      disclosureBody: { display: 'flex', flexDirection: 'column', gap: 10, paddingTop: 2 },
       pairGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 8 },
       pairCell: { display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 },
       pairCaption: { fontSize: 12, color: 'var(--dsw-alias-label-secondary)' },
@@ -796,6 +803,22 @@ window.__ModuleLoader__.load({
         },
         style: Object.assign({}, S.control, S.mono, { width: '100%', boxSizing: 'border-box', marginTop: 8 }),
       })
+    }
+
+    /** 折叠区块：标题一行，内容展开才渲染（默认收起，避免高级项占版面） */
+    function Disclosure(props) {
+      const [open, setOpen] = useState(false)
+      return h('div', { style: S.disclosure },
+        h('button', {
+          type: 'button',
+          'aria-expanded': open ? 'true' : 'false',
+          style: S.disclosureHead,
+          onClick: function () { setOpen(!open) },
+        },
+          h('span', { style: S.disclosureCaret }, open ? '\u25BE' : '\u25B8'),
+          h('span', { style: S.disclosureTitle }, props.title),
+          props.hint ? h('span', { style: S.disclosureHint }, props.hint) : null),
+        open ? h('div', { style: S.disclosureBody }, props.children) : null)
     }
 
     function Stepper(props) {
@@ -989,41 +1012,38 @@ window.__ModuleLoader__.load({
           })),
 
         h(Card, { title: t('advanced') },
-          h('div', null,
-            h('div', { style: S.label }, t('advancedFonts')),
-            h('div', { style: S.hint }, t('advancedFontsHint'))),
-          h(StackInput, {
-            value: values.uiFont,
-            placeholder: t('uiFontStack'),
-            onCommit: function (next) { commit('uiFont', next.trim()) },
-          }),
-          h(StackInput, {
-            value: values.codeFont,
-            placeholder: t('codeFontStack'),
-            onCommit: function (next) { commit('codeFont', next.trim()) },
-          }),
-          h('div', null,
-            h('div', { style: S.label }, t('io')),
-            h('div', { style: S.hint }, t('ioHint'))),
-          h('textarea', {
-            value: io, spellCheck: false, rows: 6,
-            placeholder: EXPORT_PREFIX + '{}',
-            onChange: function (event) { setIo(event.target.value) },
-            style: S.textarea,
-          }),
+          h(Disclosure, { title: t('advancedFonts'), hint: t('advancedFontsHint') },
+            h(StackInput, {
+              value: values.uiFont,
+              placeholder: t('uiFontStack'),
+              onCommit: function (next) { commit('uiFont', next.trim()) },
+            }),
+            h(StackInput, {
+              value: values.codeFont,
+              placeholder: t('codeFontStack'),
+              onCommit: function (next) { commit('codeFont', next.trim()) },
+            })),
+          h(Disclosure, { title: t('io'), hint: t('ioHint') },
+            h('textarea', {
+              value: io, spellCheck: false, rows: 6,
+              placeholder: EXPORT_PREFIX + '{}',
+              onChange: function (event) { setIo(event.target.value) },
+              style: S.textarea,
+            }),
+            h('div', { style: S.btnRow },
+              h('button', {
+                type: 'button', style: S.btn,
+                onClick: function () { setIo(actions.exportText()) },
+              }, t('exportBtn')),
+              h('button', {
+                type: 'button', style: S.btn,
+                onClick: function () {
+                  Promise.resolve(actions.applyImport(io)).then(function (ok) {
+                    setNotice(ok ? t('applied') : t('badJson'))
+                  })
+                },
+              }, t('importBtn'))),
           h('div', { style: S.btnRow },
-            h('button', {
-              type: 'button', style: S.btn,
-              onClick: function () { setIo(actions.exportText()) },
-            }, t('exportBtn')),
-            h('button', {
-              type: 'button', style: S.btn,
-              onClick: function () {
-                Promise.resolve(actions.applyImport(io)).then(function (ok) {
-                  setNotice(ok ? t('applied') : t('badJson'))
-                })
-              },
-            }, t('importBtn')),
             h('button', {
               type: 'button', style: S.btn,
               onClick: function () {
@@ -1031,7 +1051,7 @@ window.__ModuleLoader__.load({
                   setNotice(ok ? t('applied') : t('rejected'))
                 })
               },
-            }, t('resetAll')))))
+            }, t('resetAll'))))))
     }
 
     /* ---------------------------------------------------------------- 装配 */
