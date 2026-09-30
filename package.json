@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "给 DeepSeek Harness 加字体与配色设置：中英文与代码字体选择器，以及 One Dark Pro / Dracula / Nord / GitHub / Catppuccin 五套配色预设，全部走官方主题 token。",
+  "description": "轻量的 DSH 字体与主题插件：中英文字体分开选（只列本机已安装的），5 套官方色板预设（含代码块语法高亮），零依赖、零构建。",
   "license": "MIT",
   "icon": "./icon.svg",
   "main": "index.js",
