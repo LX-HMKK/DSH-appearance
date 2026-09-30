@@ -29,7 +29,7 @@ tools/                   零依赖开发工具
 
 ```sh
 npm run check            # = test + verify，提交前必跑
-npm test                 # 冒烟测试（45 项断言）
+npm test                 # 冒烟测试（51 项断言）
 npm run verify           # token 名 + WCAG 对比度
 npm run hooks:install    # 安装 commit-msg 钩子（新克隆的仓库跑一次）
 ```

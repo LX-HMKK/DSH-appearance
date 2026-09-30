@@ -135,7 +135,7 @@ try { text = render(slot.component({ store, actions, t })).join(' | '); }
 catch (error) { failures++; console.log('  FAIL  页面渲染抛错 -> ' + error.message); }
 ok('渲染出了标题', text.includes('外观增强'));
 ok('渲染出了三张卡片', text.includes('字体') && text.includes('配色') && text.includes('高级'));
-const presetLabels = ['默认', 'One Dark', '石墨', '深海', '暖沙', '森绿', '高对比'];
+const presetLabels = ['默认', 'One Dark Pro', '石墨', '深海', '暖沙', '森绿', '高对比'];
 ok('渲染出了全部 7 个预设', presetLabels.every((label) => text.includes(label)), presetLabels.filter((l) => !text.includes(l)).join(',') || 'all present');
 ok('渲染出了字号步进器', /14 px/.test(text));
 const tree = slot.component({ store, actions, t });
@@ -204,6 +204,17 @@ ok('清空全部字段后覆盖层回到空', Object.keys(last.tokens).length ==
 await scope.set('preset', 'graphite');
 last = calls.overrides[calls.overrides.length - 1];
 ok('再次切换预设立即生效（回归：不再滞后一帧）', last.tokens['--dsw-alias-bg-base'] && last.tokens['--dsw-alias-bg-base'].light === '#FFFFFF', JSON.stringify(last.tokens['--dsw-alias-bg-base']));
+
+console.log('SECTION 5b: One Dark Pro 的覆盖范围');
+await scope.set('preset', 'onedark');
+last = calls.overrides[calls.overrides.length - 1];
+const od = last.tokens;
+ok('覆盖 38 个 token（8 基础 + 30 外围与语法）', Object.keys(od).length === 38, String(Object.keys(od).length));
+ok('语法高亮关键字色进了覆盖层', !!od['--shiki-token-keyword'] && od['--shiki-token-keyword'].dark === '#C678DD', JSON.stringify(od['--shiki-token-keyword']));
+ok('语法高亮是明暗成对的', !!od['--shiki-token-comment'] && od['--shiki-token-comment'].light === '#696C77' && od['--shiki-token-comment'].dark === '#8E97A7', JSON.stringify(od['--shiki-token-comment']));
+ok('代码块底色跟随预设', !!od['--dsw-alias-markdown-code-block'] && od['--dsw-alias-markdown-code-block'].dark === '#282C34', JSON.stringify(od['--dsw-alias-markdown-code-block']));
+ok('外围 token 也进了覆盖层', !!od['--dsw-alias-label-tertiary'] && !!od['--dsw-alias-bg-layer-3'] && !!od['--dsw-alias-brand-primary']);
+ok('只有 One Dark Pro 覆盖外围（老预设仍是 8 个）', (await (async () => { await scope.set('preset', 'default'); return Object.keys(calls.overrides[calls.overrides.length - 1].tokens).length; })()) === 0);
 
 console.log('SECTION 6: 本机字体枚举（走真实 apply 注入的 actions/store）');
 const real = realProps;

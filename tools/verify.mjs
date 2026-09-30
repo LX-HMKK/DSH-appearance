@@ -8,9 +8,10 @@ const host = fs.readFileSync(path.join(root, 'index.js'), 'utf8');
 const archive = process.argv[3] || 'D:/SoftwareOfStudy/DS_H/resources/app.asar';
 
 /* ---- 1. 抽出插件用到的 token 名 ---- */
-const used = new Set([...client.matchAll(/'(--dsw-[a-z0-9-]+|--ds-[a-z0-9-]+)'/g)].map((m) => m[1]));
-for (const m of client.matchAll(/var\((--dsw-[a-z0-9-]+|--ds-[a-z0-9-]+)/g)) used.add(m[1]);
-for (const m of host.matchAll(/'(--dsw-[a-z0-9-]+|--ds-[a-z0-9-]+)'/g)) used.add(m[1]);
+const TOKEN = "(--dsw-[a-z0-9-]+|--ds-[a-z0-9-]+|--shiki-[a-z0-9-]+)";
+const used = new Set([...client.matchAll(new RegExp("'" + TOKEN + "'", 'g'))].map((m) => m[1]));
+for (const m of client.matchAll(new RegExp('var\\(' + TOKEN, 'g'))) used.add(m[1]);
+for (const m of host.matchAll(new RegExp("'" + TOKEN + "'", 'g'))) used.add(m[1]);
 
 /* ---- 2. 从安装包里取权威 token 清单 ---- */
 const fd = fs.openSync(archive, 'r');
@@ -33,7 +34,7 @@ function read(target) {
   return buf.toString('utf8');
 }
 const themeCss = read('dsh/node_modules/@deepseek-ai/dsh-client-ui-theme/lib/client.js');
-const known = new Set([...themeCss.matchAll(/--(?:dsw|ds)-[a-z0-9-]+/g)].map((m) => m[0]));
+const known = new Set([...themeCss.matchAll(/--(?:dsw|ds|shiki)-[a-z0-9-]+/g)].map((m) => m[0]));
 const missing = [...used].filter((name) => !known.has(name)).sort();
 console.log('TOKENS USED: ' + used.size);
 console.log(missing.length ? 'MISSING IN THEME BUNDLE: ' + missing.join(', ') : 'ALL TOKENS EXIST IN THEME BUNDLE: OK');
@@ -52,7 +53,7 @@ const presets = [];
 const re = /id: '([a-z]+)', key: '[^']+', swatch: '#[0-9A-Fa-f]+',\s*light: \{([^}]+)\},\s*dark: \{([^}]+)\},\s*\}/g;
 let m;
 while ((m = re.exec(presetSrc))) {
-  const parse = (s) => Object.fromEntries([...s.matchAll(/([a-zA-Z0-9]+): '(#[0-9A-Fa-f]{3,6})'/g)].map((x) => [x[1], x[2]]));
+  const parse = (s) => Object.fromEntries([...s.matchAll(/([a-zA-Z0-9]+): '(#[0-9A-Fa-f]{3,8})'/g)].map((x) => [x[1], x[2]]));
   presets.push({ id: m[1], light: parse(m[2]), dark: parse(m[3]) });
 }
 let worst = { label: '', value: 99 };
@@ -67,6 +68,19 @@ for (const p of presets) {
       ['link/base', t.link, t.base, 3],
       ['ink/layer2', t.ink, t.layer2, 4.5],
       ['accent/layer2', t.accent, t.layer2, 3],
+      // 第二批 token：只有当该预设声明了这些字段时才检查
+      ['tertiary/base', t.labelTertiary, t.base, 4.5],
+      ['caption/base', t.labelCaption, t.base, 3],
+      ['link/base', t.link, t.base, 3],
+      ['success/base', t.success, t.base, 3],
+      ['warn/base', t.warn, t.base, 3],
+      ['error/base', t.error, t.base, 3],
+      ['code-fg/code', t.synForeground, t.codeBlock, 4.5],
+      ['code-comment/code', t.synComment, t.codeBlock, 4.5],
+      ['code-string/code', t.synString, t.codeBlock, 3],
+      ['code-keyword/code', t.synKeyword, t.codeBlock, 3],
+      ['code-constant/code', t.synConstant, t.codeBlock, 3],
+      ['code-function/code', t.synFunction, t.codeBlock, 3],
     ];
     for (const [label, fg, bg, min] of checks) {
       if (!fg || !bg) continue;
@@ -105,6 +119,7 @@ const missingGroups = groups.filter((key) => !client.includes("'" + key + "'"));
 console.log('FONT GROUPS: ' + (missingGroups.length === 0 ? 'cjk/latin/local split OK' : 'MISSING ' + missingGroups.join(', ')));
 if (missingGroups.length) console.log('  FAIL 中英文字体分组缺失');
 
+console.log('PRESET TOKEN COVERAGE: ' + presets.map((p) => p.id + '=' + Object.keys(p.dark || {}).length).join(', '));
 console.log('PRESETS CHECKED: ' + presets.map((p) => p.id).join(', '));
 console.log('CONTRAST FAILURES: ' + failures);
 console.log('WORST RATIO: ' + worst.value.toFixed(2) + '  (' + worst.label + ')');

@@ -35,7 +35,7 @@ window.__ModuleLoader__.load({
       'inkLight', 'inkDark',
     ]
 
-    /** 预设字段 -> 官方 token 名 */
+    /** 预设字段 -> 官方 token 名（第一批：八个基础语义 token，所有预设都覆盖） */
     const TOKEN = {
       accent: '--dsw-alias-state-business-primary',
       link: '--dsw-alias-link',
@@ -45,6 +45,48 @@ window.__ModuleLoader__.load({
       ink: '--dsw-alias-label-primary',
       secondary: '--dsw-alias-label-secondary',
       border: '--dsw-alias-border-l2',
+    }
+
+    /**
+     * 第二批：外围界面与代码块。第一批只覆盖底色/两级表面/正文/边框，
+     * 于是侧栏、菜单、浮层、状态色、代码块仍停在 DSH 默认配色上——就是
+     * "主题对主 UI 外围不生效"的来源。**只有声明了这些字段的预设才会覆盖它们**，
+     * 所以老预设的行为不变。
+     *
+     * 最后 11 个是 shiki 的语法高亮变量（ui-theme 的 shiki 表把 --shiki-token-*
+     * 指向语义色）：直接改这些变量＝只动代码块里的 token 颜色，不牵连别的组件。
+     */
+    const TOKEN_MORE = {
+      labelTertiary: '--dsw-alias-label-tertiary',
+      labelCaption: '--dsw-alias-label-caption',
+      borderL1: '--dsw-alias-border-l1',
+      borderL3: '--dsw-alias-border-l3',
+      borderL4: '--dsw-alias-border-l4',
+      layer3: '--dsw-alias-bg-layer-3',
+      brand: '--dsw-alias-brand-primary',
+      buttonHover: '--dsw-alias-button-primary-hover',
+      elevated: '--dsw-alias-button-elevated-fill',
+      success: '--dsw-alias-state-success-primary',
+      warn: '--dsw-alias-state-warn-primary',
+      error: '--dsw-alias-state-error-primary',
+      codeBlock: '--dsw-alias-markdown-code-block',
+      codeBanner: '--dsw-alias-markdown-code-block-banner',
+      inlineCode: '--dsw-alias-markdown-inline-code',
+      diffAdded: '--dsw-alias-code-diff-added',
+      diffDeleted: '--dsw-alias-code-diff-deleted',
+      scrollbar: '--dsw-alias-scrollbar-bg-l2',
+      scrollbarHover: '--dsw-alias-scrollbar-hover-l2',
+      synForeground: '--shiki-foreground',
+      synBackground: '--shiki-background',
+      synComment: '--shiki-token-comment',
+      synString: '--shiki-token-string',
+      synStringExpr: '--shiki-token-string-expression',
+      synKeyword: '--shiki-token-keyword',
+      synConstant: '--shiki-token-constant',
+      synFunction: '--shiki-token-function',
+      synParameter: '--shiki-token-parameter',
+      synPunctuation: '--shiki-token-punctuation',
+      synLink: '--shiki-token-link',
     }
 
     /** 找不到字形时兜底的字体栈；用户选的家族一律挂在它前面 */
@@ -338,17 +380,18 @@ window.__ModuleLoader__.load({
     /**
      * 配色预设：每种给出浅色/深色两套 token 值；default 不覆盖任何 token。
      *
-     * onedark = Atom One Dark / One Light 的**界面化取色**：底色、强调色、边框沿用原版
-     * （#282C34 / #61AFEF / #3E4451），只把正文与次级文字提亮到满足 WCAG（原版正文
-     * #ABB2BF 在 #282C34 上只有 6.6:1，达不到本仓库 7:1 的正文标准）。同源明色版对应
-     * One Light。
+     * onedark = One Dark Pro 系（深色用 **Darker** 档：底色 #21252B、表面 #282C34、
+     * 强调 #61AFEF；浅色用 One Light）。底色/强调色/边框/语法色都取原版色号，
+     * 只有"当文字用"的几档提亮到满足 WCAG——原版正文 #ABB2BF 在 #282C34 上只有
+     * 6.6:1，达不到本仓库 7:1 的正文标准，这里用 #C3C9D4（8.4:1）。
+     * 它是唯一声明了 TOKEN_MORE 的预设，所以外围与代码块也一起换色。
      */
     const PRESETS = [
       { id: 'default', key: 'preset.default', swatch: '#4176E6' },
       {
         id: 'onedark', key: 'preset.onedark', swatch: '#61AFEF',
-        light: { accent: '#4078F2', link: '#4078F2', base: '#FAFAFA', layer1: '#F2F2F3', layer2: '#E7E7E9', ink: '#383A42', secondary: '#696C77', border: '#D8D8DA' },
-        dark: { accent: '#61AFEF', link: '#61AFEF', base: '#282C34', layer1: '#2C313A', layer2: '#363C46', ink: '#C3C9D4', secondary: '#8E97A7', border: '#3E4451' },
+        light: { accent: '#4078F2', link: '#4078F2', base: '#FAFAFA', layer1: '#F2F2F3', layer2: '#E7E7E9', ink: '#383A42', secondary: '#696C77', border: '#D8D8DA', labelTertiary: '#6E717A', labelCaption: '#8E8F96', borderL1: '#ECECEE', borderL3: '#C9C9CC', borderL4: '#B8B8BC', layer3: '#FFFFFF', brand: '#4078F2', buttonHover: '#2E62D9', elevated: '#FFFFFF', success: '#50A14F', warn: '#C18401', error: '#E45649', codeBlock: '#FAFAFA', codeBanner: '#F0F0F1', inlineCode: '#ECECEE', diffAdded: '#50A14F26', diffDeleted: '#E4564926', scrollbar: '#C9C9CC', scrollbarHover: '#B4B4B8', synForeground: '#383A42', synBackground: '#FAFAFA', synComment: '#696C77', synString: '#50A14F', synStringExpr: '#50A14F', synKeyword: '#A626A4', synConstant: '#986801', synFunction: '#4078F2', synParameter: '#383A42', synPunctuation: '#383A42', synLink: '#4078F2' },
+        dark: { accent: '#61AFEF', link: '#61AFEF', base: '#21252B', layer1: '#282C34', layer2: '#2F343D', ink: '#C3C9D4', secondary: '#97A0B0', border: '#3E4451', labelTertiary: '#8B94A3', labelCaption: '#7C8595', borderL1: '#2A2F37', borderL3: '#4B5263', borderL4: '#5A6270', layer3: '#3E4451', brand: '#61AFEF', buttonHover: '#7BC0F5', elevated: '#2F343D', success: '#98C379', warn: '#E5C07B', error: '#E06C75', codeBlock: '#282C34', codeBanner: '#2C313A', inlineCode: '#2F343D', diffAdded: '#98C37933', diffDeleted: '#E06C7533', scrollbar: '#4B5263', scrollbarHover: '#5A6270', synForeground: '#ABB2BF', synBackground: '#282C34', synComment: '#8E97A7', synString: '#98C379', synStringExpr: '#98C379', synKeyword: '#C678DD', synConstant: '#D19A66', synFunction: '#61AFEF', synParameter: '#C3C9D4', synPunctuation: '#ABB2BF', synLink: '#61AFEF' },
       },
       {
         id: 'graphite', key: 'preset.graphite', swatch: '#4A5568',
@@ -409,6 +452,9 @@ window.__ModuleLoader__.load({
       if (preset && preset.light) {
         for (const key of Object.keys(TOKEN)) {
           put(TOKEN[key], preset.light[key], preset.dark[key])
+        }
+        for (const key of Object.keys(TOKEN_MORE)) {
+          put(TOKEN_MORE[key], preset.light[key], preset.dark[key])
         }
       }
       if (values.uiFont) put('--dsw-font-family', values.uiFont, values.uiFont)
@@ -529,7 +575,7 @@ window.__ModuleLoader__.load({
       'code.default': '默认等宽栈',
       'code.sarasa': '更纱黑体等宽',
       'preset.default': '默认',
-      'preset.onedark': 'One Dark',
+      'preset.onedark': 'One Dark Pro',
       'preset.graphite': '石墨',
       'preset.deepsea': '深海',
       'preset.sand': '暖沙',
@@ -620,7 +666,7 @@ window.__ModuleLoader__.load({
       'code.default': 'Default mono stack',
       'code.sarasa': 'Sarasa Mono SC',
       'preset.default': 'Default',
-      'preset.onedark': 'One Dark',
+      'preset.onedark': 'One Dark Pro',
       'preset.graphite': 'Graphite',
       'preset.deepsea': 'Deep Sea',
       'preset.sand': 'Warm Sand',
