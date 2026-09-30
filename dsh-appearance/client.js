@@ -16,7 +16,7 @@ window.__ModuleLoader__.load({
     'use strict'
     const React = require('react')
     const h = React.createElement
-    const { useEffect, useState, useSyncExternalStore } = React
+    const { useEffect, useRef, useState, useSyncExternalStore } = React
 
     /** = profile 里的 Loader 行 id = 设置命名空间 */
     const ENTRY_ID = 'dsh-appearance'
@@ -47,25 +47,150 @@ window.__ModuleLoader__.load({
       border: '--dsw-alias-border-l2',
     }
 
+    /** 找不到字形时兜底的字体栈；用户选的家族一律挂在它前面 */
+    const UI_FALLBACK = '-apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif'
+    const CODE_FALLBACK = '"SF Mono", "JetBrains Mono", "Fira Code", Consolas, "Liberation Mono", Menlo, Courier, "PingFang SC", "Microsoft YaHei"'
+
+    /**
+     * 字体选项 = 「家族名 + 内部拼好的栈」。
+     * 用户只看到 family，字体栈是插件自己拼的实现细节（高级里仍可手写）。
+     */
     const UI_FONTS = [
-      { key: 'font.follow', stack: '' },
-      { key: 'font.system', stack: '-apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif' },
-      { key: 'font.inter', stack: 'Inter, "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif' },
-      { key: 'font.noto', stack: '"Noto Sans SC", "Source Han Sans SC", "Source Han Sans CN", "PingFang SC", "Microsoft YaHei", sans-serif' },
-      { key: 'font.lxgw', stack: '"LXGW WenKai", "LXGW WenKai Screen", "Kaiti SC", "KaiTi", "STKaiti", serif' },
-      { key: 'font.serif', stack: '"Songti SC", "SimSun", "Noto Serif SC", Georgia, "Times New Roman", serif' },
-      { key: 'font.rounded', stack: '"Yuanti SC", "YouYuan", Quicksand, "Varela Round", "PingFang SC", sans-serif' },
+      // 推荐
+      { key: 'font.follow', family: '', stack: '', group: 'fontGroup.recommended' },
+      { key: 'font.system', family: '', stack: UI_FALLBACK, group: 'fontGroup.recommended' },
+      // 中文黑体
+      { key: 'font.noto', family: 'Noto Sans SC', group: 'fontGroup.chineseSans' },
+      { key: 'font.harmony', family: 'HarmonyOS Sans SC', group: 'fontGroup.chineseSans' },
+      { key: 'font.misans', family: 'MiSans', group: 'fontGroup.chineseSans' },
+      { key: 'font.puhuiti', family: 'Alibaba PuHuiTi 3.0', group: 'fontGroup.chineseSans' },
+      { key: 'font.pingfang', family: 'PingFang SC', group: 'fontGroup.chineseSans' },
+      { key: 'font.yahei', family: 'Microsoft YaHei', group: 'fontGroup.chineseSans' },
+      { key: 'font.sarasaGothic', family: 'Sarasa Gothic SC', group: 'fontGroup.chineseSans' },
+      // 中文宋楷
+      { key: 'font.notoSerif', family: 'Noto Serif SC', group: 'fontGroup.chineseSerif' },
+      { key: 'font.lxgw', family: 'LXGW WenKai', group: 'fontGroup.chineseSerif' },
+      { key: 'font.lxgwScreen', family: 'LXGW WenKai Screen', group: 'fontGroup.chineseSerif' },
+      { key: 'font.serif', family: 'Songti SC', group: 'fontGroup.chineseSerif' },
+      { key: 'font.simsun', family: 'SimSun', group: 'fontGroup.chineseSerif' },
+      { key: 'font.kaiti', family: 'Kaiti SC', group: 'fontGroup.chineseSerif' },
+      // 西文无衬线
+      { family: 'Inter', group: 'fontGroup.latinSans' },
+      { family: 'Roboto', group: 'fontGroup.latinSans' },
+      { family: 'Open Sans', group: 'fontGroup.latinSans' },
+      { family: 'Lato', group: 'fontGroup.latinSans' },
+      { family: 'Poppins', group: 'fontGroup.latinSans' },
+      { family: 'Montserrat', group: 'fontGroup.latinSans' },
+      { family: 'Nunito', group: 'fontGroup.latinSans' },
+      { family: 'Work Sans', group: 'fontGroup.latinSans' },
+      { family: 'IBM Plex Sans', group: 'fontGroup.latinSans' },
+      { family: 'Source Sans 3', group: 'fontGroup.latinSans' },
+      { family: 'Manrope', group: 'fontGroup.latinSans' },
+      { family: 'DM Sans', group: 'fontGroup.latinSans' },
+      { family: 'Plus Jakarta Sans', group: 'fontGroup.latinSans' },
+      { family: 'Outfit', group: 'fontGroup.latinSans' },
+      { family: 'Figtree', group: 'fontGroup.latinSans' },
+      { family: 'Mulish', group: 'fontGroup.latinSans' },
+      // 西文衬线
+      { family: 'Playfair Display', group: 'fontGroup.latinSerif' },
+      { family: 'Merriweather', group: 'fontGroup.latinSerif' },
+      { family: 'Lora', group: 'fontGroup.latinSerif' },
+      { family: 'Source Serif 4', group: 'fontGroup.latinSerif' },
+      { family: 'EB Garamond', group: 'fontGroup.latinSerif' },
+      { family: 'Libre Baskerville', group: 'fontGroup.latinSerif' },
+      { family: 'Crimson Pro', group: 'fontGroup.latinSerif' },
+      { family: 'Noto Serif', group: 'fontGroup.latinSerif' },
+      // 展示与圆体
+      { key: 'font.smiley', family: 'Smiley Sans', group: 'fontGroup.display' },
+      { key: 'font.rounded', family: 'Yuanti SC', group: 'fontGroup.display' },
+      { key: 'font.youyuan', family: 'YouYuan', group: 'fontGroup.display' },
+      { family: 'Quicksand', group: 'fontGroup.display' },
+      { family: 'Comfortaa', group: 'fontGroup.display' },
+      { family: 'Varela Round', group: 'fontGroup.display' },
+      { family: 'Baloo 2', group: 'fontGroup.display' },
+      { family: 'Fredoka', group: 'fontGroup.display' },
     ]
 
     const CODE_FONTS = [
-      { key: 'code.follow', stack: '' },
-      { key: 'code.default', stack: '"SF Mono", "JetBrains Mono", "Fira Code", Consolas, "Liberation Mono", Menlo, Courier, "PingFang SC", "Microsoft YaHei"' },
-      { key: 'code.jetbrains', stack: '"JetBrains Mono", "Cascadia Code", Consolas, "Courier New", monospace' },
-      { key: 'code.cascadia', stack: '"Cascadia Code", "Cascadia Mono", Consolas, "Courier New", monospace' },
-      { key: 'code.fira', stack: '"Fira Code", "Fira Mono", Consolas, monospace' },
-      { key: 'code.sarasa', stack: '"Sarasa Mono SC", "Sarasa Fixed SC", "Sarasa Term SC", "Noto Sans Mono CJK SC", monospace' },
-      { key: 'code.menlo', stack: 'Menlo, Monaco, Consolas, "DejaVu Sans Mono", monospace' },
+      { key: 'code.follow', family: '', stack: '', group: 'fontGroup.recommended' },
+      { key: 'code.default', family: '', stack: CODE_FALLBACK, group: 'fontGroup.recommended' },
+      { family: 'JetBrains Mono', group: 'fontGroup.mono' },
+      { family: 'Fira Code', group: 'fontGroup.mono' },
+      { family: 'Cascadia Code', group: 'fontGroup.mono' },
+      { family: 'Cascadia Mono', group: 'fontGroup.mono' },
+      { family: 'Source Code Pro', group: 'fontGroup.mono' },
+      { family: 'IBM Plex Mono', group: 'fontGroup.mono' },
+      { family: 'Roboto Mono', group: 'fontGroup.mono' },
+      { family: 'Victor Mono', group: 'fontGroup.mono' },
+      { family: 'Iosevka', group: 'fontGroup.mono' },
+      { family: 'Maple Mono', group: 'fontGroup.mono' },
+      { family: 'Recursive Mono', group: 'fontGroup.mono' },
+      { family: 'Inconsolata', group: 'fontGroup.mono' },
+      { family: 'Hack', group: 'fontGroup.mono' },
+      { family: 'Ubuntu Mono', group: 'fontGroup.mono' },
+      { family: 'Noto Sans Mono', group: 'fontGroup.mono' },
+      { key: 'code.sarasa', family: 'Sarasa Mono SC', group: 'fontGroup.mono' },
+      { family: 'Menlo', group: 'fontGroup.mono' },
+      { family: 'Consolas', group: 'fontGroup.mono' },
+      { family: 'SF Mono', group: 'fontGroup.mono' },
     ]
+
+    /** 把家族名安全地拼成字体栈（引号、逗号等一律清洗掉） */
+    function stackOf(family, fallback) {
+      const clean = String(family || '').replace(/["']/g, '').trim()
+      if (!clean) return fallback
+      return '"' + clean + '", ' + fallback
+    }
+
+    /** 本机字体枚举（Chromium 的 Local Font Access）：惰性、失败即静默降级 */
+    const localFonts = { status: 'idle', families: [] }
+
+    /**
+     * 组装某个选择器的全部选项：精选家族 + 本机已安装家族。
+     * 字体栈在这里自动生成，条目只需声明家族名。
+     */
+    function fontOptions(kind, t) {
+      const fallback = kind === 'code' ? CODE_FALLBACK : UI_FALLBACK
+      const curated = kind === 'code' ? CODE_FONTS : UI_FONTS
+      const options = curated.map(function (item) {
+        return {
+          id: item.key || 'family:' + item.family,
+          label: item.key ? t(item.key) : item.family,
+          family: item.family,
+          stack: item.stack !== undefined ? item.stack : stackOf(item.family, fallback),
+          group: t(item.group),
+        }
+      })
+      const curatedFamilies = {}
+      for (const item of curated) if (item.family) curatedFamilies[item.family.toLowerCase()] = true
+      let added = 0
+      for (const family of localFonts.families) {
+        if (added >= 300) break
+        if (curatedFamilies[family.toLowerCase()]) continue
+        added += 1
+        options.push({
+          id: 'local:' + family,
+          label: family,
+          family: family,
+          stack: stackOf(family, fallback),
+          group: t('fontGroup.installed'),
+        })
+      }
+      return options
+    }
+
+    /**
+     * 把已保存的值映射回选项：先精确匹配字体栈，再退回"栈以该家族开头"，
+     * 这样旧版本保存的栈（多了几个中间家族）也能认出来，不会显示成"自定义"。
+     */
+    function matchFont(options, stack) {
+      if (!stack) return options.find(function (option) { return option.stack === '' }) || null
+      const exact = options.find(function (option) { return option.stack === stack })
+      if (exact) return exact
+      const head = stack.split(',')[0].trim().replace(/^["']|["']$/g, '').toLowerCase()
+      if (!head) return null
+      return options.find(function (option) { return option.family && option.family.toLowerCase() === head }) || null
+    }
 
     /** 配色预设：每种给出浅色/深色两套 token 值；default 不覆盖任何 token */
     const PRESETS = [
@@ -139,11 +264,6 @@ window.__ModuleLoader__.load({
       return pairs
     }
 
-    function fontIdOf(list, stack) {
-      const found = list.find((item) => item.stack === stack)
-      return found ? found.stack : '__custom__'
-    }
-
     function isHex(text) {
       return /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(String(text || '').trim())
     }
@@ -180,7 +300,6 @@ window.__ModuleLoader__.load({
       uiFontHint: '影响整个界面与会话文字，留空表示跟随 DSH 默认。',
       codeFont: '代码字体',
       codeFontHint: '影响代码块、JSON 与 diff 等等宽区域。',
-      customStack: '字体栈（可直接写任意已安装字体）',
       fontSize: '正文字号',
       fontSizeHint: '与「设置 → 通用」的字号是同一个值（10–22 px）。',
       colors: '配色',
@@ -196,7 +315,10 @@ window.__ModuleLoader__.load({
       ink: '文字色',
       inkHint: '正文文字颜色。',
       followPreset: '跟随预设',
-      custom: '自定义…',
+      advancedFonts: '自定义字体栈',
+      advancedFontsHint: '需要精确控制时直接写 CSS font-family；留空表示跟随默认。上面的选择器与这里同步。',
+      uiFontStack: '界面与正文',
+      codeFontStack: '代码',
       reset: '重置',
       advanced: '高级',
       io: '导入 / 导出',
@@ -208,20 +330,38 @@ window.__ModuleLoader__.load({
       memoryMode: '当前页面不是本机回环地址，改动只在本次会话生效。',
       applied: '已应用。',
       badJson: '文本无法解析，请检查格式。',
+      'fontGroup.recommended': '推荐',
+      'fontGroup.chineseSans': '中文黑体',
+      'fontGroup.chineseSerif': '中文宋楷',
+      'fontGroup.latinSans': '西文无衬线',
+      'fontGroup.latinSerif': '西文衬线',
+      'fontGroup.display': '展示与圆体',
+      'fontGroup.mono': '等宽',
+      'fontGroup.installed': '本机已安装',
       'font.follow': '跟随 DSH 默认',
-      'font.system': '系统无衬线（默认栈）',
-      'font.inter': 'Inter（几何无衬线）',
-      'font.noto': '思源黑体 / Noto Sans SC',
-      'font.lxgw': '霞鹜文楷（楷体）',
-      'font.serif': '宋体 / 衬线',
+      'font.system': '系统无衬线',
+      'font.noto': '思源黑体',
+      'font.harmony': '鸿蒙 Sans',
+      'font.misans': 'MiSans 小米',
+      'font.puhuiti': '阿里巴巴普惠体',
+      'font.pingfang': '苹方',
+      'font.yahei': '微软雅黑',
+      'font.sarasaGothic': '更纱黑体',
+      'font.notoSerif': '思源宋体',
+      'font.lxgw': '霞鹜文楷',
+      'font.lxgwScreen': '霞鹜文楷（屏幕版）',
+      'font.serif': '宋体',
+      'font.simsun': '中易宋体',
+      'font.kaiti': '楷体',
+      'font.smiley': '得意黑',
       'font.rounded': '圆体',
+      'font.youyuan': '幼圆',
+      'font.customName': '自定义',
+      'font.search': '搜索字体…',
+      'font.empty': '没有匹配的字体',
       'code.follow': '跟随 DSH 默认',
-      'code.default': '默认等宽栈（SF Mono / JetBrains / Fira）',
-      'code.jetbrains': 'JetBrains Mono',
-      'code.cascadia': 'Cascadia Code',
-      'code.fira': 'Fira Code',
-      'code.sarasa': '更纱黑体等宽 Sarasa Mono SC',
-      'code.menlo': 'Menlo / Consolas',
+      'code.default': '默认等宽栈',
+      'code.sarasa': '更纱黑体等宽',
       'preset.default': '默认',
       'preset.graphite': '石墨',
       'preset.deepsea': '深海',
@@ -239,7 +379,6 @@ window.__ModuleLoader__.load({
       uiFontHint: 'Applies to the whole interface and conversation text. Empty follows the DSH default.',
       codeFont: 'Code font',
       codeFontHint: 'Applies to code blocks, JSON and diffs.',
-      customStack: 'Font stack (any installed family)',
       fontSize: 'Body text size',
       fontSizeHint: 'The same value as Settings - General (10-22 px).',
       colors: 'Colors',
@@ -255,7 +394,10 @@ window.__ModuleLoader__.load({
       ink: 'Ink',
       inkHint: 'Body text color.',
       followPreset: 'Follow preset',
-      custom: 'Custom…',
+      advancedFonts: 'Custom font stacks',
+      advancedFontsHint: 'Write a raw CSS font-family when you need exact control. Empty follows the default; the pickers above stay in sync.',
+      uiFontStack: 'Interface and body',
+      codeFontStack: 'Code',
       reset: 'Reset',
       advanced: 'Advanced',
       io: 'Import / Export',
@@ -267,20 +409,38 @@ window.__ModuleLoader__.load({
       memoryMode: 'This page is not on a loopback origin, so changes live only in this session.',
       applied: 'Applied.',
       badJson: 'Could not parse that text.',
+      'fontGroup.recommended': 'Recommended',
+      'fontGroup.chineseSans': 'Chinese sans',
+      'fontGroup.chineseSerif': 'Chinese serif',
+      'fontGroup.latinSans': 'Latin sans',
+      'fontGroup.latinSerif': 'Latin serif',
+      'fontGroup.display': 'Display & rounded',
+      'fontGroup.mono': 'Monospace',
+      'fontGroup.installed': 'Installed on this device',
       'font.follow': 'Follow DSH default',
-      'font.system': 'System sans (default stack)',
-      'font.inter': 'Inter (geometric sans)',
+      'font.system': 'System sans',
       'font.noto': 'Noto Sans SC',
+      'font.harmony': 'HarmonyOS Sans',
+      'font.misans': 'MiSans',
+      'font.puhuiti': 'Alibaba PuHuiTi',
+      'font.pingfang': 'PingFang SC',
+      'font.yahei': 'Microsoft YaHei',
+      'font.sarasaGothic': 'Sarasa Gothic',
+      'font.notoSerif': 'Noto Serif SC',
       'font.lxgw': 'LXGW WenKai',
-      'font.serif': 'Serif',
+      'font.lxgwScreen': 'LXGW WenKai Screen',
+      'font.serif': 'Songti',
+      'font.simsun': 'SimSun',
+      'font.kaiti': 'Kaiti',
+      'font.smiley': 'Smiley Sans',
       'font.rounded': 'Rounded',
+      'font.youyuan': 'YouYuan',
+      'font.customName': 'Custom',
+      'font.search': 'Search fonts…',
+      'font.empty': 'No matching font',
       'code.follow': 'Follow DSH default',
-      'code.default': 'Default mono stack (SF Mono / JetBrains / Fira)',
-      'code.jetbrains': 'JetBrains Mono',
-      'code.cascadia': 'Cascadia Code',
-      'code.fira': 'Fira Code',
+      'code.default': 'Default mono stack',
       'code.sarasa': 'Sarasa Mono SC',
-      'code.menlo': 'Menlo / Consolas',
       'preset.default': 'Default',
       'preset.graphite': 'Graphite',
       'preset.deepsea': 'Deep Sea',
@@ -318,6 +478,16 @@ window.__ModuleLoader__.load({
       segBtnOn: { background: 'var(--dsw-alias-bg-layer-1)', color: 'var(--dsw-alias-label-primary)' },
       textarea: { width: '100%', boxSizing: 'border-box', minHeight: 120, resize: 'vertical', background: 'var(--dsw-alias-bg-layer-1)', color: 'var(--dsw-alias-label-primary)', border: '1px solid var(--dsw-alias-border-l2)', borderRadius: 'var(--dsw-radius-sm, 8px)', padding: 8, fontSize: 12, fontFamily: 'var(--ds-font-family-code)' },
       btnRow: { display: 'flex', flexWrap: 'wrap', gap: 8 },
+      pickerRoot: { position: 'relative', display: 'inline-block' },
+      pickerTrigger: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, minWidth: 208, maxWidth: 268, padding: '6px 10px', background: 'var(--dsw-alias-bg-layer-1)', color: 'var(--dsw-alias-label-primary)', border: '1px solid var(--dsw-alias-border-l2)', borderRadius: 'var(--dsw-radius-sm, 8px)', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' },
+      pickerCaret: { color: 'var(--dsw-alias-label-tertiary)', fontSize: 10, flex: '0 0 auto' },
+      pickerPanel: { position: 'absolute', top: 'calc(100% + 6px)', right: 0, zIndex: 40, minWidth: 268, maxWidth: 330, maxHeight: 336, overflowY: 'auto', padding: 6, background: 'var(--dsw-menu-surface-fill, var(--dsw-alias-bg-layer-2))', border: '1px solid var(--dsw-alias-border-l2)', borderRadius: 'var(--dsw-radius-md, 10px)', boxShadow: 'var(--dsw-elevation-prominent, 0 10px 30px rgba(0, 0, 0, .18))', outline: 'none' },
+      pickerSearch: { width: '100%', boxSizing: 'border-box', marginBottom: 6, padding: '6px 8px', background: 'var(--dsw-alias-bg-layer-1)', color: 'var(--dsw-alias-label-primary)', border: '1px solid var(--dsw-alias-border-l2)', borderRadius: 'var(--dsw-radius-sm, 8px)', fontSize: 13, fontFamily: 'inherit' },
+      pickerGroup: { padding: '8px 10px 4px', fontSize: 11, color: 'var(--dsw-alias-label-caption)' },
+      pickerItem: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, width: '100%', boxSizing: 'border-box', padding: '7px 10px', background: 'transparent', border: 'none', borderRadius: 'var(--dsw-radius-sm, 8px)', color: 'var(--dsw-alias-label-primary)', fontSize: 14, textAlign: 'left', cursor: 'pointer' },
+      pickerItemOn: { background: 'var(--dsw-alias-interactive-bg-hover)' },
+      pickerCheck: { color: 'var(--dsw-alias-state-business-primary)', fontSize: 13, flex: '0 0 auto' },
+      pickerEmpty: { padding: 10, fontSize: 12, color: 'var(--dsw-alias-label-tertiary)' },
     }
 
     /* ---------------------------------------------------------------- 控件 */
@@ -334,14 +504,93 @@ window.__ModuleLoader__.load({
         h('div', { style: S.rowControl }, props.children))
     }
 
-    function Select(props) {
-      return h('select', {
-        value: props.value,
-        onChange: function (event) { props.onChange(event.target.value) },
-        style: Object.assign({}, S.control, props.style),
-      }, props.options.map(function (option) {
-        return h('option', { key: option.value, value: option.value }, option.label)
-      }))
+    /**
+     * 字体选择器：外观与宿主一致（token 上色 + 自绘面板），
+     * 每个选项用**它自己的字体**渲染名字，选中的打勾。
+     */
+    function FontPicker(props) {
+      const t = props.t
+      const options = props.options
+      const [open, setOpen] = useState(false)
+      const [query, setQuery] = useState('')
+      const [active, setActive] = useState(0)
+      const rootRef = useRef(null)
+
+      useEffect(function () {
+        if (!open) return undefined
+        const onPointerDown = function (event) {
+          if (rootRef.current && !rootRef.current.contains(event.target)) setOpen(false)
+        }
+        const onKeyDown = function (event) { if (event.key === 'Escape') setOpen(false) }
+        document.addEventListener('mousedown', onPointerDown)
+        document.addEventListener('keydown', onKeyDown)
+        return function () {
+          document.removeEventListener('mousedown', onPointerDown)
+          document.removeEventListener('keydown', onKeyDown)
+        }
+      }, [open])
+
+      const current = matchFont(options, props.value)
+      const keyword = query.trim().toLowerCase()
+      const visible = keyword
+        ? options.filter(function (option) { return (option.label + ' ' + option.family).toLowerCase().indexOf(keyword) >= 0 })
+        : options
+
+      const choose = function (option) {
+        if (!option) return
+        setOpen(false)
+        setQuery('')
+        props.onChange(option.stack)
+      }
+
+      return h('div', { ref: rootRef, style: S.pickerRoot },
+        h('button', {
+          type: 'button',
+          'aria-haspopup': 'listbox',
+          'aria-expanded': open ? 'true' : 'false',
+          onClick: function () { setOpen(!open); if (!open) props.onOpen() },
+          style: S.pickerTrigger,
+        },
+          h('span', { style: { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, current ? current.label : t('font.customName')),
+          h('span', { style: S.pickerCaret }, open ? '\u25B4' : '\u25BE')),
+        open
+          ? h('div', {
+              role: 'listbox',
+              tabIndex: 0,
+              style: S.pickerPanel,
+              onKeyDown: function (event) {
+                if (event.key === 'ArrowDown') { event.preventDefault(); setActive(Math.min(active + 1, visible.length - 1)) }
+                else if (event.key === 'ArrowUp') { event.preventDefault(); setActive(Math.max(active - 1, 0)) }
+                else if (event.key === 'Enter') { event.preventDefault(); choose(visible[active]) }
+              },
+            },
+            visible.length > 12
+              ? h('input', {
+                  type: 'text', value: query, spellCheck: false, placeholder: t('font.search'),
+                  onChange: function (event) { setQuery(event.target.value); setActive(0) },
+                  style: S.pickerSearch,
+                })
+              : null,
+            visible.length === 0 ? h('div', { style: S.pickerEmpty }, t('font.empty')) : null,
+            visible.map(function (option, index) {
+              const selected = option.stack === props.value
+              const header = index === 0 || visible[index - 1].group !== option.group
+                ? h('div', { key: 'group:' + option.group + ':' + index, style: S.pickerGroup }, option.group)
+                : null
+              return h('div', { key: option.id },
+                header,
+                h('button', {
+                  type: 'button',
+                  role: 'option',
+                  'aria-selected': selected ? 'true' : 'false',
+                  onMouseEnter: function () { setActive(index) },
+                  onClick: function () { choose(option) },
+                  style: Object.assign({}, S.pickerItem, index === active ? S.pickerItemOn : null),
+                },
+                  h('span', { style: { fontFamily: 'inherit', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, option.label),
+                  selected ? h('span', { style: S.pickerCheck }, '\u2713') : null))
+            }))
+          : null)
     }
 
     function StackInput(props) {
@@ -439,29 +688,21 @@ window.__ModuleLoader__.load({
 
         h(Card, { title: t('fonts') },
           h(Row, { title: t('uiFont'), hint: t('uiFontHint') },
-            h(Select, {
-              value: fontIdOf(UI_FONTS, values.uiFont),
-              options: UI_FONTS.map(function (item) { return { value: item.stack, label: t(item.key) } })
-                .concat([{ value: '__custom__', label: t('custom') }]),
-              onChange: function (stack) { if (stack !== '__custom__') commit('uiFont', stack) },
+            h(FontPicker, {
+              value: values.uiFont,
+              options: fontOptions('ui', t),
+              t: t,
+              onOpen: actions.loadLocalFonts,
+              onChange: function (stack) { commit('uiFont', stack) },
             })),
-          h(StackInput, {
-            value: values.uiFont,
-            placeholder: t('customStack'),
-            onCommit: function (next) { commit('uiFont', next.trim()) },
-          }),
           h(Row, { title: t('codeFont'), hint: t('codeFontHint') },
-            h(Select, {
-              value: fontIdOf(CODE_FONTS, values.codeFont),
-              options: CODE_FONTS.map(function (item) { return { value: item.stack, label: t(item.key) } })
-                .concat([{ value: '__custom__', label: t('custom') }]),
-              onChange: function (stack) { if (stack !== '__custom__') commit('codeFont', stack) },
+            h(FontPicker, {
+              value: values.codeFont,
+              options: fontOptions('code', t),
+              t: t,
+              onOpen: actions.loadLocalFonts,
+              onChange: function (stack) { commit('codeFont', stack) },
             })),
-          h(StackInput, {
-            value: values.codeFont,
-            placeholder: t('customStack'),
-            onCommit: function (next) { commit('codeFont', next.trim()) },
-          }),
           h(Row, { title: t('fontSize'), hint: t('fontSizeHint') },
             h(Stepper, {
               value: snapshot.fontSize, min: FONT_SIZE_MIN, max: FONT_SIZE_MAX,
@@ -523,6 +764,19 @@ window.__ModuleLoader__.load({
 
         h(Card, { title: t('advanced') },
           h('div', null,
+            h('div', { style: S.label }, t('advancedFonts')),
+            h('div', { style: S.hint }, t('advancedFontsHint'))),
+          h(StackInput, {
+            value: values.uiFont,
+            placeholder: t('uiFontStack'),
+            onCommit: function (next) { commit('uiFont', next.trim()) },
+          }),
+          h(StackInput, {
+            value: values.codeFont,
+            placeholder: t('codeFontStack'),
+            onCommit: function (next) { commit('codeFont', next.trim()) },
+          }),
+          h('div', null,
             h('div', { style: S.label }, t('io')),
             h('div', { style: S.hint }, t('ioHint'))),
           h('textarea', {
@@ -572,6 +826,7 @@ window.__ModuleLoader__.load({
           mode: snapshot.mode,
           writable: snapshot.writable,
           fontSize: ctx.theme.getTheme().fontSize,
+          localFonts: localFonts.status + ':' + localFonts.families.length,
         }
       })
 
@@ -606,6 +861,36 @@ window.__ModuleLoader__.load({
             return await scope.set(field, '')
           }
           return await scope.set(field, text)
+        },
+        /**
+         * 首次打开选择器时枚举本机字体（Chromium Local Font Access）。
+         * 惰性：不在插件加载时弹权限；不可用或拒绝时静默降级为精选列表。
+         */
+        loadLocalFonts: function () {
+          if (localFonts.status !== 'idle') return
+          const api = typeof window !== 'undefined' && typeof window.queryLocalFonts === 'function'
+            ? window.queryLocalFonts
+            : null
+          if (!api) {
+            localFonts.status = 'unavailable'
+            store.refresh()
+            return
+          }
+          localFonts.status = 'loading'
+          Promise.resolve(api.call(window)).then(function (fonts) {
+            const seen = {}
+            for (const font of fonts || []) {
+              const family = font && font.family
+              if (family && !seen[family]) seen[family] = true
+            }
+            localFonts.families = Object.keys(seen).sort(function (a, b) { return a.localeCompare(b) })
+            localFonts.status = 'ready'
+            store.refresh()
+          }).catch(function (error) {
+            localFonts.status = 'unavailable'
+            localFonts.error = String((error && error.message) || error)
+            store.refresh()
+          })
         },
         setFontSize: function (px) {
           try {

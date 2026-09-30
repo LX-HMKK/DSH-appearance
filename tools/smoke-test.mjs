@@ -20,6 +20,7 @@ const createElement = (type, props, ...children) => ({ type, props: props || {},
 const React = {
   createElement,
   useState: (init) => [typeof init === 'function' ? init() : init, () => {}],
+  useRef: (init) => ({ current: init }),
   useEffect: () => {},
   useSyncExternalStore: (_sub, get) => get(),
 };
@@ -153,6 +154,18 @@ const collect = (node, out) => {
 const props = collect(tree, []);
 ok('导出前缀出现在 textarea 占位符', props.some((p) => p.startsWith('dsh-appearance-v1:')), JSON.stringify(props.slice(0, 4)));
 ok('页面里有 textarea 与 3 个取色器', props.includes('textarea') && props.filter((p) => p === 'color').length === 3, JSON.stringify(props.slice(0, 10)));
+
+console.log('SECTION 4b: 字体选择器');
+// 旧版保存的长字体栈也要能认回家族名，且界面上不能再出现原始栈
+await scope.set('uiFont', '"Noto Sans SC", "Source Han Sans SC", "Source Han Sans CN", "PingFang SC", "Microsoft YaHei", sans-serif');
+const text2 = render(slot.component({ store, actions, t })).join(' | ');
+ok('界面显示家族名而不是字体栈', text2.includes('思源黑体') && !text2.includes('Source Han Sans CN'), text2.slice(0, 100));
+ok('没有原生 select（下拉已自绘）', !collect(slot.component({ store, actions, t }), []).includes('select'));
+await scope.set('uiFont', '');
+await scope.set('codeFont', '"JetBrains Mono", "Cascadia Code", Consolas, "Courier New", monospace');
+const text3 = render(slot.component({ store, actions, t })).join(' | ');
+ok('等宽字体同样显示家族名', text3.includes('JetBrains Mono') && !text3.includes('Cascadia Code, Consolas'), text3.slice(0, 100));
+await scope.set('codeFont', '');
 
 console.log('SECTION 5: 导入 / 导出 / 重置');
 const exportedText = actions.exportText();

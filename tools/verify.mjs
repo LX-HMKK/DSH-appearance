@@ -76,6 +76,14 @@ for (const p of presets) {
     }
   }
 }
+/* ---- 4. 字体目录规模（"多放点好看的字体"） ---- */
+const families = [...client.matchAll(/\{ (?:key: '[^']+', )?family: '([^']+)'/g)].map((m) => m[1]);
+const curated = families.filter((f) => f !== '');
+const duplicates = curated.filter((f, i) => curated.indexOf(f) !== i);
+console.log('FONT FAMILIES CURATED: ' + curated.length + (duplicates.length ? '  DUPLICATES: ' + duplicates.join(', ') : '  (no duplicates)'));
+if (curated.length < 40) console.log('  WARN 精选字体少于 40 个');
+if (duplicates.length) console.log('  FAIL 字体目录有重复条目');
+
 console.log('PRESETS CHECKED: ' + presets.map((p) => p.id).join(', '));
 console.log('CONTRAST FAILURES: ' + failures);
 console.log('WORST RATIO: ' + worst.value.toFixed(2) + '  (' + worst.label + ')');
