@@ -5,18 +5,19 @@
 全部效果都走官方主题 token（`--dsw-*` / `--ds-*`），不注入补丁、不修改 DSH 源码、不打包任何字体或第三方依赖。
 
 ```
-.
-├─ dsh-appearance/          插件包本体（可直接作为 bundle 安装）
-│  ├─ package.json          dsh.bundle.patch + dsh.client 两半侧的声明
-│  ├─ cordis.patch.yml      组合包层：插入插件行（行 id = 设置命名空间）
-│  ├─ index.js              宿主半侧：Config schema + 首屏字体注入
-│  ├─ client.js             浏览器半侧：设置页 + token 覆盖层（无构建）
-│  ├─ locale/{zh,en}.json   插件卡片的显示名与描述
-│  └─ icon.svg
-└─ tools/                   开发工具（零依赖纯 Node）
-   ├─ smoke-test.mjs        假 React + 假 ctx，把插件真跑一遍
-   ├─ verify.mjs            token 名校验 + 配色对比度校验
-   └─ asar.mjs              直接读取 DSH 的 app.asar（排查内部实现用）
+仓库根 = 插件包本体（awesome-dsh-plugin 的 CI 只从根 / packages / plugins / apps 读 package.json）
+├─ package.json          dsh.bundle.patch + dsh.client 两半侧的声明，以及开发用 scripts
+├─ cordis.patch.yml      组合包层：插入插件行（行 id = 设置命名空间）
+├─ index.js              宿主半侧：Config schema + 首屏字体注入
+├─ client.js             浏览器半侧：设置页 + token 覆盖层（无构建）
+├─ locale/{zh,en}.json   插件卡片的显示名与描述
+├─ icon.svg
+├─ screenshots.json      插件市场详情页的截图清单
+├─ assets/               截图与预览图
+└─ tools/                开发工具（零依赖纯 Node）
+   ├─ smoke-test.mjs     假 React + 假 ctx，把插件真跑一遍
+   ├─ verify.mjs         token 名校验 + 配色对比度校验
+   └─ asar.mjs           直接读取 DSH 的 app.asar（排查内部实现用）
 ```
 
 ## 安装
@@ -25,16 +26,16 @@
 
 **A. 界面安装（推荐，免命令行）**
 
-DSH 左侧「Plugins」→「添加插件」，填入本目录的绝对路径：
+DSH 左侧「Plugins」→「添加插件」，填入本仓库的绝对路径（仓库根就是插件包）：
 
 ```
-D:\StudyWorks\4.1\DSH_WS\dsh-appearance
+D:\StudyWorks\4.1\DSH_WS
 ```
 
 **B. 命令行安装**
 
 ```sh
-npx -y --package @deepseek-ai/dsh dsh plugin --profile desktop add D:\StudyWorks\4.1\DSH_WS\dsh-appearance
+npx -y --package @deepseek-ai/dsh dsh plugin --profile desktop add D:\StudyWorks\4.1\DSH_WS
 ```
 
 装完会把这行追加进 profile 的 `dsh.profile.bundles`。**如果设置里没有出现「外观」，重启一次 DSH**（首次挂载新行需要加载新的配置层）。
@@ -43,9 +44,9 @@ npx -y --package @deepseek-ai/dsh dsh plugin --profile desktop add D:\StudyWorks
 
 在 `$DSH_HOME/profiles/<profile>/` 下做三件事：
 
-1. `package.json`：`dependencies` 加 `"dsh-appearance": "link:<本目录绝对路径>"`，`dsh.profile.bundles` 数组追加 `"dsh-appearance"`；
-2. `node_modules/dsh-appearance` 建目录联接（junction / symlink）指向本目录；
-3. **在本目录里补一个 peer 链接**：`node_modules/@deepseek-ai/schemastery` → `<profile>/node_modules/@deepseek-ai/schemastery`。
+1. `package.json`：`dependencies` 加 `"dsh-appearance": "link:<本仓库绝对路径>"`，`dsh.profile.bundles` 数组追加 `"dsh-appearance"`；
+2. `node_modules/dsh-appearance` 建目录联接（junction / symlink）指向**本仓库根**；
+3. **在仓库根补一个 peer 链接**：`node_modules/@deepseek-ai/schemastery` → `<profile>/node_modules/@deepseek-ai/schemastery`。
    少了第 3 步会踩坑：目录联接会让 Node 按**真实路径**（本仓库）向上找依赖，而 DSH 的运行时包在 profile 里，宿主半侧的 `import '@deepseek-ai/schemastery'` 会直接 ERR_MODULE_NOT_FOUND。
 
 校验（在 profile 目录里跑，解析链与真实 loader 一致）：
@@ -69,6 +70,27 @@ node -e "import('dsh-appearance').then(m => console.log(m.name, typeof m.apply, 
 **色板来源**：取各主题官方色值，不做主观发挥——One Dark Pro 深色用 Darker 档（`#23272E`，侧栏 `#1E2227`，正文 `#ABB2BF`，语法色取自扩展自带的 `OneDark-Pro-darker.json`），Dracula / Nord / GitHub Primer / Catppuccin 同理；浅色一侧分别是 One Light / Alucard / Nord Light / GitHub Light / Latte。只有两处最小偏离：主题没公布的第四级灰阶按自身灰阶插值；浅色档里对比度不达标的原版彩色会压暗（例如 Latte 的粉彩）。
 
 **语法高亮**：DSH 的代码块走 shiki 的 CSS 变量主题（`--shiki-token-*`），插件直接覆盖这些变量，所以关键字/字符串/数字/注释都跟着主题走，且不牵连其它组件。组件级材质（菜单/浮层的模糊背板）与终端 ANSI 色不在覆盖范围内。明暗由「设置 → 通用」的外观切换决定，插件不另设开关。
+
+## Config 字段
+
+| 字段 | 默认 | 含义 |
+|---|---|---|
+| `preset` | `default` | 配色预设 id（`onedark` / `dracula` / `nord` / `github` / `catppuccin`） |
+| `uiFont` | `''` | 界面与正文字体栈；空 = 跟随 DSH 默认 |
+| `codeFont` | `''` | 代码字体栈；空 = 跟随 DSH 默认 |
+| `accentLight` / `accentDark` | `''` | 强调色，按明暗档分别覆盖 |
+| `surfaceLight` / `surfaceDark` | `''` | 背景色 |
+| `inkLight` / `inkDark` | `''` | 文字色 |
+
+手填值**逐档**合并：只填了深色档时，浅色档保留预设的值。
+
+## 卸载
+
+```sh
+npx -y --package @deepseek-ai/dsh dsh plugin --profile desktop remove dsh-appearance
+```
+
+或在「Plugins → 已安装」里关掉 / 移除。卸载后本插件写入的 token 覆盖层与首屏样式都会一并回收。
 
 ## 开发
 

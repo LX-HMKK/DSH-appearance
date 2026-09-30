@@ -11,12 +11,17 @@
 ## 目录
 
 ```
-dsh-appearance/          插件包本体（bundle：带 dsh.bundle.patch 的 npm 包）
-  package.json           两半侧声明：dsh.bundle.patch + dsh.client
-  cordis.patch.yml       组合包层：insert 一行（行 id = 设置命名空间）
-  index.js               宿主半侧：Config(volatile) + webserver/index-inject 首屏注入
-  client.js              浏览器半侧：lazy-CJS factory + 设置页 + token 覆盖层
-  locale/{zh,en}.json    插件管理卡片的显示名/描述
+仓库根 = 插件包本体（bundle：带 dsh.bundle.patch 的 npm 包）。
+**根就是包**是刻意为之：awesome-dsh-plugin 的 CI 只从根 / packages / plugins / apps
+读 package.json，放在自建子目录里会被判为「没有 bundle 清单」。
+
+package.json             两半侧声明（dsh.bundle.patch + dsh.client）+ 开发 scripts
+cordis.patch.yml         组合包层：insert 一行（行 id = 设置命名空间）
+index.js                 宿主半侧：Config(volatile) + webserver/index-inject 首屏注入
+client.js                浏览器半侧：lazy-CJS factory + 设置页 + token 覆盖层
+locale/{zh,en}.json      插件管理卡片的显示名/描述
+screenshots.json         插件市场详情页的截图清单（相对路径，指向 assets/）
+assets/                  截图与配色预览图
 tools/                   零依赖开发工具
   smoke-test.mjs         假 React + 假 ctx，把插件真跑一遍
   verify.mjs             token 名校验 + 配色对比度校验
@@ -37,10 +42,10 @@ npm run hooks:install    # 安装 commit-msg 钩子（新克隆的仓库跑一�
 安装到 DSH（开发时用 link 形式）：
 
 ```sh
-npx -y --package @deepseek-ai/dsh dsh plugin --profile desktop add <本目录绝对路径>
+npx -y --package @deepseek-ai/dsh dsh plugin --profile desktop add <本仓库绝对路径>
 ```
 
-没有 `dsh` CLI 时见 README「手动 link 安装」——**务必别漏掉插件目录里的
+没有 `dsh` CLI 时见 README「手动 link 安装」——**务必别漏掉仓库根里的
 `node_modules/@deepseek-ai/schemastery` peer 链接**，否则宿主半侧会 ERR_MODULE_NOT_FOUND。
 另外：桌面端不会因 profile 文件变化而热重载，装完要重启应用才会出现「外观」页。
 
