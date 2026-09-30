@@ -216,6 +216,37 @@ const text4 = render(slot.component(real)).join(' | ');
 ok('枚举后页面仍可渲染', text4.includes('外观增强'));
 try { await real.actions.loadLocalFonts(); ok('重复枚举是幂等的', true); } catch (error) { ok('重复枚举是幂等的', false, error.message); }
 
+console.log('SECTION 7: 候选去重与选中态（回归：两行同名 + 两个勾）');
+const collectPickers = (node, out) => {
+  if (!node || typeof node !== 'object') return out;
+  if (Array.isArray(node)) { node.forEach((child) => collectPickers(child, out)); return out; }
+  if (typeof node.type === 'function') {
+    if (node.type.name === 'FontPicker') out.push(node);
+    collectPickers(node.type(Object.assign({}, node.props, { children: node.children })), out);
+    return out;
+  }
+  (node.children || []).forEach((child) => collectPickers(child, out));
+  return out;
+};
+const beforePick = collectPickers(slot.component(real), []);
+ok('本机字体就绪后仍是 3 个选择器', beforePick.length === 3, String(beforePick.length));
+const codePicker = beforePick[2];
+const interOption = codePicker.props.allOptions.find((option) => option.family === 'Inter');
+ok('本机枚举出的 Inter 进入候选', !!interOption, JSON.stringify(codePicker.props.allOptions.map((o) => o.family)));
+// 等宽选项的栈里带着整条兜底链：旧实现拿整条栈跟家族名比，判定"当前值不在候选里"，
+// 于是同一个家族被追加成第二行，两行都与当前值相等 -> 两行同名 + 两个勾。
+await codePicker.props.onChange(interOption.stack);
+await new Promise((resolve) => setTimeout(resolve, 10));
+const codeAfter = collectPickers(slot.component(real), [])[2];
+const dupeFamilies = codeAfter.props.allOptions.filter((o) => o.family).map((o) => o.family.toLowerCase());
+ok('候选里同一家族只出现一行', new Set(dupeFamilies).size === dupeFamilies.length, JSON.stringify(dupeFamilies));
+ok('默认短名单同样没有重复家族', codeAfter.props.options.length === new Set(codeAfter.props.options.map((o) => o.family || o.id)).size, JSON.stringify(codeAfter.props.options.map((o) => o.family)));
+ok('不再追加多余的「当前值」行', !codeAfter.props.allOptions.some((o) => o.id === 'current'), JSON.stringify(codeAfter.props.allOptions.map((o) => o.id)));
+const pickedValue = real.store.get().values.codeFont;
+const matched = codeAfter.props.allOptions.filter((o) => o.stack === pickedValue);
+ok('只有一行与当前值完全相等（只会打一个勾）', matched.length === 1, 'value=' + pickedValue + ' rows=' + JSON.stringify(codeAfter.props.allOptions.map((o) => o.family)));
+await scope.set('codeFont', '');
+
 try { fs.unlinkSync(hostTmp); } catch {}
 console.log('');
 console.log(failures === 0 ? 'SMOKE TEST: ALL PASS' : 'SMOKE TEST: ' + failures + ' FAILURE(S)');

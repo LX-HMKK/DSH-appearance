@@ -152,6 +152,11 @@ window.__ModuleLoader__.load({
       return String(part || '').trim().replace(/^["']|["']$/g, '').trim()
     }
 
+    /** 取字体栈里的第一个家族名（对比"当前值"、判断家族是否已列出都用它） */
+    function headFamily(stack) {
+      return cleanFamily(String(stack || '').split(',')[0])
+    }
+
     /** 把一条已有的字体栈拆成"英文字体 + 中文字体"两个家族名 */
     function splitStack(stack) {
       const parts = String(stack || '').split(',').map(cleanFamily).filter(function (part) {
@@ -245,6 +250,21 @@ window.__ModuleLoader__.load({
       const pushTo = function (list, option) {
         if (!list.some(function (item) { return item.id === option.id })) list.push(option)
       }
+      /**
+       * 同一家族只留第一行。候选有三个来源（精选表、本机枚举、当前值），
+       * 它们指向同一个家族时必须合并，否则下拉里会出现两行同名。
+       */
+      const dedupe = function (list) {
+        const seen = {}
+        const out = []
+        for (const option of list) {
+          const key = option.family ? 'family:' + option.family.trim().toLowerCase() : 'id:' + option.id
+          if (seen[key]) continue
+          seen[key] = true
+          out.push(option)
+        }
+        return out
+      }
 
       if (localFonts.status === 'ready') {
         const installed = {}
@@ -277,11 +297,16 @@ window.__ModuleLoader__.load({
         for (const option of all.slice()) pushTo(picks, option)
       }
 
-      // 当前选中的字体必须始终可见（导入的配置、或枚举不到的家族）
+      // 当前选中的字体必须始终可见（导入的配置、或枚举不到的家族）。
+      // 判重只能按**家族名**：等宽选项的栈里带着整条兜底链，拿整条栈跟家族名比永远
+      // 不相等，于是同一个家族会被追加第二行——用户看到的就是"两行 Consolas + 两个勾"。
       if (currentValue) {
-        const value = pair ? currentValue : currentValue.split(',')[0].trim().replace(/^["']|["']$/g, '')
-        const lower = String(value).toLowerCase()
-        const present = all.some(function (option) { return option.stack.toLowerCase() === lower })
+        const value = pair ? currentValue : headFamily(currentValue)
+        const lower = String(value).trim().toLowerCase()
+        const present = all.some(function (option) {
+          return (option.family && option.family.trim().toLowerCase() === lower) ||
+            String(option.stack || '').toLowerCase() === lower
+        })
         if (value && !present) {
           const option = pair
             ? familyEntry(value)
@@ -291,7 +316,7 @@ window.__ModuleLoader__.load({
         }
       }
 
-      return { options: picks, allOptions: all, missing: missing }
+      return { options: dedupe(picks), allOptions: dedupe(all), missing: missing }
     }
 
     /**
@@ -305,7 +330,7 @@ window.__ModuleLoader__.load({
       const lower = String(stack).toLowerCase()
       const insensitive = options.find(function (option) { return option.stack.toLowerCase() === lower })
       if (insensitive) return insensitive
-      const head = stack.split(',')[0].trim().replace(/^["']|["']$/g, '').toLowerCase()
+      const head = headFamily(stack).toLowerCase()
       if (!head) return null
       return options.find(function (option) { return option.family && option.family.toLowerCase() === head }) || null
     }
@@ -616,15 +641,22 @@ window.__ModuleLoader__.load({
       seg: { display: 'inline-flex', border: '1px solid var(--dsw-alias-border-l2)', borderRadius: 'var(--dsw-radius-sm, 8px)', overflow: 'hidden' },
       segBtn: { padding: '4px 10px', fontSize: 12, background: 'transparent', color: 'var(--dsw-alias-label-secondary)', border: 'none', cursor: 'pointer' },
       segBtnOn: { background: 'var(--dsw-alias-bg-layer-1)', color: 'var(--dsw-alias-label-primary)' },
-      textarea: { width: '100%', boxSizing: 'border-box', minHeight: 120, resize: 'vertical', background: 'var(--dsw-alias-bg-layer-1)', color: 'var(--dsw-alias-label-primary)', border: '1px solid var(--dsw-alias-border-l2)', borderRadius: 'var(--dsw-radius-sm, 8px)', padding: 8, fontSize: 12, fontFamily: 'var(--ds-font-family-code)' },
-      btnRow: { display: 'flex', flexWrap: 'wrap', gap: 8 },
+      textarea: { width: '100%', boxSizing: 'border-box', minHeight: 104, resize: 'vertical', background: 'var(--dsw-alias-bg-layer-1)', color: 'var(--dsw-alias-label-primary)', border: '1px solid var(--dsw-alias-border-l2)', borderRadius: 'var(--dsw-radius-sm, 8px)', padding: 10, fontSize: 12, lineHeight: 1.55, fontFamily: 'var(--ds-font-family-code)' },
+      btnRowEnd: { display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-end' },
       block: { display: 'flex', flexDirection: 'column', gap: 4 },
-      disclosure: { display: 'flex', flexDirection: 'column', gap: 10 },
-      disclosureHead: { display: 'flex', alignItems: 'baseline', gap: 8, width: '100%', boxSizing: 'border-box', padding: '6px 8px', background: 'var(--dsw-alias-bg-layer-1)', border: '1px solid var(--dsw-alias-border-l2)', borderRadius: 'var(--dsw-radius-sm, 8px)', color: 'var(--dsw-alias-label-primary)', fontSize: 13, textAlign: 'left', cursor: 'pointer' },
-      disclosureCaret: { flex: '0 0 auto', color: 'var(--dsw-alias-label-tertiary)', fontSize: 10 },
+      field: { display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 },
+      fieldLabel: { fontSize: 12, fontWeight: 500, color: 'var(--dsw-alias-label-secondary)' },
+      // 高级项每块自带边框：标题一行（说明右对齐），展开后是分隔线下的面板，
+      // 比"裸控件浮在卡片里"整齐，也一眼能看出当前收起了几块。
+      advancedList: { display: 'flex', flexDirection: 'column', gap: 10 },
+      disclosure: { display: 'flex', flexDirection: 'column', border: '1px solid var(--dsw-alias-border-l2)', borderRadius: 'var(--dsw-radius-md, 10px)', overflow: 'hidden' },
+      disclosureHead: { display: 'flex', alignItems: 'center', gap: 10, width: '100%', boxSizing: 'border-box', padding: '10px 12px', background: 'transparent', border: 'none', color: 'var(--dsw-alias-label-primary)', fontFamily: 'inherit', fontSize: 13, textAlign: 'left', cursor: 'pointer' },
+      disclosureCaret: { flex: '0 0 auto', width: 10, color: 'var(--dsw-alias-label-tertiary)', fontSize: 10, lineHeight: 1 },
       disclosureTitle: { flex: '0 0 auto', fontWeight: 500 },
-      disclosureHint: { flex: '1 1 auto', minWidth: 0, color: 'var(--dsw-alias-label-tertiary)', fontSize: 12 },
-      disclosureBody: { display: 'flex', flexDirection: 'column', gap: 10, paddingTop: 2 },
+      disclosureHint: { flex: '1 1 auto', minWidth: 0, textAlign: 'right', color: 'var(--dsw-alias-label-tertiary)', fontSize: 12 },
+      disclosureBody: { display: 'flex', flexDirection: 'column', gap: 12, padding: '12px 12px 14px', borderTop: '1px solid var(--dsw-alias-border-l1)' },
+      cardFooter: { display: 'flex', justifyContent: 'flex-end', marginTop: 6, paddingTop: 12, borderTop: '1px solid var(--dsw-alias-border-l1)' },
+      dangerBtn: { background: 'transparent', color: 'var(--dsw-alias-state-error-primary)', border: '1px solid var(--dsw-alias-border-l2)', borderRadius: 'var(--dsw-radius-sm, 8px)', padding: '5px 12px', fontSize: 13, fontFamily: 'inherit', cursor: 'pointer' },
       pairGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 8 },
       pairCell: { display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 },
       pairCaption: { fontSize: 12, color: 'var(--dsw-alias-label-secondary)' },
@@ -698,6 +730,12 @@ window.__ModuleLoader__.load({
       const hasMore = all.length > options.length + 1
       const list = showAll ? all : options
       const current = matchFont(list, props.value) || matchFont(options, props.value)
+      /** 选中态按"匹配到的那一项"判定，同一家族即使有多行也不会同时打勾 */
+      const isSelected = function (option) {
+        if (!current) return false
+        if (option.id === current.id) return true
+        return !!option.family && !!current.family && option.family.toLowerCase() === current.family.toLowerCase()
+      }
       const keyword = query.trim().toLowerCase()
       const visible = keyword
         ? list.filter(function (option) { return (option.label + ' ' + option.family).toLowerCase().indexOf(keyword) >= 0 })
@@ -747,7 +785,7 @@ window.__ModuleLoader__.load({
             h('div', { style: S.pickerList },
               visible.length === 0 ? h('div', { style: S.pickerEmpty }, t('font.empty')) : null,
               visible.map(function (option, index) {
-                const selected = option.stack === props.value
+                const selected = isSelected(option)
                 const preview = option.preview || option.stack || 'inherit'
                 const header = index === 0 || visible[index - 1].groupKey !== option.groupKey
                   ? h('div', { key: 'g:' + option.groupKey + ':' + index, style: S.pickerGroup }, t(option.groupKey))
@@ -801,7 +839,7 @@ window.__ModuleLoader__.load({
         onKeyDown: function (event) {
           if (event.key === 'Enter') { event.preventDefault(); if (draft !== props.value) props.onCommit(draft) }
         },
-        style: Object.assign({}, S.control, S.mono, { width: '100%', boxSizing: 'border-box', marginTop: 8 }),
+        style: Object.assign({}, S.control, S.mono, { width: '100%', boxSizing: 'border-box', minWidth: 0 }),
       })
     }
 
@@ -1012,46 +1050,51 @@ window.__ModuleLoader__.load({
           })),
 
         h(Card, { title: t('advanced') },
-          h(Disclosure, { title: t('advancedFonts'), hint: t('advancedFontsHint') },
-            h(StackInput, {
-              value: values.uiFont,
-              placeholder: t('uiFontStack'),
-              onCommit: function (next) { commit('uiFont', next.trim()) },
-            }),
-            h(StackInput, {
-              value: values.codeFont,
-              placeholder: t('codeFontStack'),
-              onCommit: function (next) { commit('codeFont', next.trim()) },
-            })),
-          h(Disclosure, { title: t('io'), hint: t('ioHint') },
-            h('textarea', {
-              value: io, spellCheck: false, rows: 6,
-              placeholder: EXPORT_PREFIX + '{}',
-              onChange: function (event) { setIo(event.target.value) },
-              style: S.textarea,
-            }),
-            h('div', { style: S.btnRow },
+          h('div', { style: S.advancedList },
+            h(Disclosure, { title: t('advancedFonts'), hint: t('advancedFontsHint') },
+              h('div', { style: S.field },
+                h('div', { style: S.fieldLabel }, t('uiFontStack')),
+                h(StackInput, {
+                  value: values.uiFont,
+                  placeholder: '"Inter", "Microsoft YaHei", sans-serif',
+                  onCommit: function (next) { commit('uiFont', next.trim()) },
+                })),
+              h('div', { style: S.field },
+                h('div', { style: S.fieldLabel }, t('codeFontStack')),
+                h(StackInput, {
+                  value: values.codeFont,
+                  placeholder: '"JetBrains Mono", Consolas, monospace',
+                  onCommit: function (next) { commit('codeFont', next.trim()) },
+                }))),
+            h(Disclosure, { title: t('io'), hint: t('ioHint') },
+              h('textarea', {
+                value: io, spellCheck: false, rows: 5,
+                placeholder: EXPORT_PREFIX + '{}',
+                onChange: function (event) { setIo(event.target.value) },
+                style: S.textarea,
+              }),
+              h('div', { style: S.btnRowEnd },
+                h('button', {
+                  type: 'button', style: S.btn,
+                  onClick: function () { setIo(actions.exportText()) },
+                }, t('exportBtn')),
+                h('button', {
+                  type: 'button', style: S.btn,
+                  onClick: function () {
+                    Promise.resolve(actions.applyImport(io)).then(function (ok) {
+                      setNotice(ok ? t('applied') : t('badJson'))
+                    })
+                  },
+                }, t('importBtn'))),
+            h('div', { style: S.cardFooter },
               h('button', {
-                type: 'button', style: S.btn,
-                onClick: function () { setIo(actions.exportText()) },
-              }, t('exportBtn')),
-              h('button', {
-                type: 'button', style: S.btn,
+                type: 'button', style: S.dangerBtn,
                 onClick: function () {
-                  Promise.resolve(actions.applyImport(io)).then(function (ok) {
-                    setNotice(ok ? t('applied') : t('badJson'))
+                  Promise.resolve(actions.resetAll()).then(function (ok) {
+                    setNotice(ok ? t('applied') : t('rejected'))
                   })
                 },
-              }, t('importBtn'))),
-          h('div', { style: S.btnRow },
-            h('button', {
-              type: 'button', style: S.btn,
-              onClick: function () {
-                Promise.resolve(actions.resetAll()).then(function (ok) {
-                  setNotice(ok ? t('applied') : t('rejected'))
-                })
-              },
-            }, t('resetAll'))))))
+              }, t('resetAll')))))))
     }
 
     /* ---------------------------------------------------------------- 装配 */
