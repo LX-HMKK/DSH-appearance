@@ -42,7 +42,7 @@ D:\path\to\dsh-appearance
 # 本地目录
 npx -y --package @deepseek-ai/dsh dsh plugin --profile desktop add D:\path\to\dsh-appearance
 # 或直接从仓库装
-npx -y --package @deepseek-ai/dsh dsh plugin --profile desktop add https://github.com/<owner>/dsh-appearance
+npx -y --package @deepseek-ai/dsh dsh plugin --profile desktop add https://github.com/LX-HMKK/DSH-appearance
 ```
 
 装完会把这行追加进 profile 的 `dsh.profile.bundles`。**如果设置里没有出现「外观」，重启一次 DSH**（首次挂载新行需要加载新的配置层）。
