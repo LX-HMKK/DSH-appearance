@@ -400,6 +400,10 @@ window.__ModuleLoader__.load({
      * 只有两处偏离原版，都是为了可读性，且只动"当文字用"的那几档：
      * ① 主题没公布第四级灰阶时按自己的灰阶插值（标记见 tools/verify.mjs 的对比度检查）；
      * ② 浅色档里对比度不足的原版彩色会压暗到达标（例如 Latte 的粉彩）。
+     * 代码块底色取主题的**面板/控件表面**（VS Code 里 markdown 代码块就是这一层：One Dark Pro
+     * 的 editorWidget #1E2227、Dracula 的 #21222C、Catppuccin 的 mantle #181825、Nord 的 nord1），
+     * 所以代码块和对话底色一定分得开；代码块条幅再取浅一档。
+     *
      * 38 个 token 的展开规则：色板 -> 角色 -> token，全部字段都是显式字面量，
      * 方便 tools/verify.mjs 逐条核对（改色请跑 npm run check）。
      */
@@ -411,10 +415,10 @@ window.__ModuleLoader__.load({
           accent: '#4078F2', link: '#4078F2', base: '#FAFAFA', layer1: '#F0F0F1', layer2: '#E5E5E6',
           layer3: '#FFFFFF', ink: '#383A42', secondary: '#696C77', border: '#D8D8DA', labelTertiary: '#6F727A',
           labelCaption: '#8E8F96', borderL1: '#EBEBEC', borderL3: '#C2C2C5', borderL4: '#ABACAF', brand: '#4078F2',
-          buttonHover: '#2E62D9', elevated: '#E5E5E6', success: '#50A14F', warn: '#C18401', error: '#E45649',
-          codeBlock: '#FAFAFA', codeBanner: '#F0F0F1', inlineCode: '#F0F0F1', diffAdded: '#50A14F26', diffDeleted: '#E4564926',
-          scrollbar: '#C0C1C5', scrollbarHover: '#A7A9AF', synForeground: '#383A42', synBackground: '#FAFAFA', synComment: '#696C77',
-          synString: '#50A14F', synStringExpr: '#50A14F', synKeyword: '#A626A4', synConstant: '#986801', synFunction: '#4078F2',
+          buttonHover: '#2E62D9', elevated: '#E5E5E6', success: '#4A9A49', warn: '#C18401', error: '#E45649',
+          codeBlock: '#F0F0F1', codeBanner: '#E5E5E6', inlineCode: '#F0F0F1', diffAdded: '#4A9A4926', diffDeleted: '#E4564926',
+          scrollbar: '#C0C1C5', scrollbarHover: '#A7A9AF', synForeground: '#383A42', synBackground: '#F0F0F1', synComment: '#696C77',
+          synString: '#4A9A49', synStringExpr: '#4A9A49', synKeyword: '#A626A4', synConstant: '#986801', synFunction: '#4078F2',
           synParameter: '#383A42', synPunctuation: '#383A42', synLink: '#4078F2'
         },
         dark: {
@@ -422,8 +426,8 @@ window.__ModuleLoader__.load({
           layer3: '#3E4451', ink: '#ABB2BF', secondary: '#9DA5B4', border: '#3E4452', labelTertiary: '#8B94A3',
           labelCaption: '#7F848E', borderL1: '#2F343E', borderL3: '#4D5361', borderL4: '#5D6371', brand: '#61AFEF',
           buttonHover: '#7BC0F5', elevated: '#323842', success: '#98C379', warn: '#E5C07B', error: '#E06C75',
-          codeBlock: '#23272E', codeBanner: '#2C313A', inlineCode: '#2C313A', diffAdded: '#98C3792E', diffDeleted: '#E06C752E',
-          scrollbar: '#525964', scrollbarHover: '#686F7B', synForeground: '#ABB2BF', synBackground: '#23272E', synComment: '#7F848E',
+          codeBlock: '#1E2227', codeBanner: '#23272E', inlineCode: '#1E2227', diffAdded: '#98C3792E', diffDeleted: '#E06C752E',
+          scrollbar: '#525964', scrollbarHover: '#686F7B', synForeground: '#ABB2BF', synBackground: '#1E2227', synComment: '#7F848E',
           synString: '#98C379', synStringExpr: '#ABB2BF', synKeyword: '#C678DD', synConstant: '#D19A66', synFunction: '#61AFEF',
           synParameter: '#ABB2BF', synPunctuation: '#ABB2BF', synLink: '#61AFEF'
         },
@@ -435,8 +439,8 @@ window.__ModuleLoader__.load({
           layer3: '#FFFFFF', ink: '#1F1F1F', secondary: '#6C664B', border: '#CFCFDE', labelTertiary: '#767051',
           labelCaption: '#8F8867', borderL1: '#E9E7E5', borderL3: '#B6B6C3', borderL4: '#9E9EA9', brand: '#644AC9',
           buttonHover: '#4E39A8', elevated: '#E7E1CC', success: '#14710A', warn: '#846E15', error: '#CB3A2A',
-          codeBlock: '#FFFBEB', codeBanner: '#F4EFDC', inlineCode: '#F4EFDC', diffAdded: '#14710A26', diffDeleted: '#CB3A2A26',
-          scrollbar: '#C2BCA5', scrollbarHover: '#AAA48C', synForeground: '#1F1F1F', synBackground: '#FFFBEB', synComment: '#7C7559',
+          codeBlock: '#F4EFDC', codeBanner: '#E7E1CC', inlineCode: '#F4EFDC', diffAdded: '#14710A26', diffDeleted: '#CB3A2A26',
+          scrollbar: '#C2BCA5', scrollbarHover: '#AAA48C', synForeground: '#1F1F1F', synBackground: '#F4EFDC', synComment: '#7C7559',
           synString: '#846E15', synStringExpr: '#846E15', synKeyword: '#A3144D', synConstant: '#A34D14', synFunction: '#14710A',
           synParameter: '#1F1F1F', synPunctuation: '#1F1F1F', synLink: '#036A96'
         },
@@ -445,8 +449,8 @@ window.__ModuleLoader__.load({
           layer3: '#4D5168', ink: '#F8F8F2', secondary: '#C3C7D1', border: '#44475A', labelTertiary: '#9EA3B8',
           labelCaption: '#8A8FB0', borderL1: '#353746', borderL3: '#5D606F', borderL4: '#767985', brand: '#BD93F9',
           buttonHover: '#CBA6FB', elevated: '#44475A', success: '#50FA7B', warn: '#F1FA8C', error: '#FF5555',
-          codeBlock: '#282A36', codeBanner: '#343746', inlineCode: '#343746', diffAdded: '#50FA7B2E', diffDeleted: '#FF55552E',
-          scrollbar: '#6A6D7E', scrollbarHover: '#848796', synForeground: '#F8F8F2', synBackground: '#282A36', synComment: '#7B87B8',
+          codeBlock: '#21222C', codeBanner: '#282A36', inlineCode: '#21222C', diffAdded: '#50FA7B2E', diffDeleted: '#FF55552E',
+          scrollbar: '#6A6D7E', scrollbarHover: '#848796', synForeground: '#F8F8F2', synBackground: '#21222C', synComment: '#7B87B8',
           synString: '#F1FA8C', synStringExpr: '#F8F8F2', synKeyword: '#FF79C6', synConstant: '#BD93F9', synFunction: '#50FA7B',
           synParameter: '#F8F8F2', synPunctuation: '#F8F8F2', synLink: '#8BE9FD'
         },
@@ -458,7 +462,7 @@ window.__ModuleLoader__.load({
           layer3: '#FFFFFF', ink: '#2E3440', secondary: '#4C566A', border: '#C2CBD9', labelTertiary: '#5A6478',
           labelCaption: '#6C7689', borderL1: '#D9DFE8', borderL3: '#ADB6C4', borderL4: '#99A1AE', brand: '#4C6E95',
           buttonHover: '#3F5C7D', elevated: '#D8DEE9', success: '#4E7A3A', warn: '#9A7B27', error: '#A54A52',
-          codeBlock: '#E5E9F0', codeBanner: '#E5E9F0', inlineCode: '#E5E9F0', diffAdded: '#4E7A3A26', diffDeleted: '#A54A5226',
+          codeBlock: '#E5E9F0', codeBanner: '#D8DEE9', inlineCode: '#E5E9F0', diffAdded: '#4E7A3A26', diffDeleted: '#A54A5226',
           scrollbar: '#AEB5C3', scrollbarHover: '#929AAA', synForeground: '#2E3440', synBackground: '#E5E9F0', synComment: '#5A6478',
           synString: '#4E7A3A', synStringExpr: '#4E7A3A', synKeyword: '#4C6E95', synConstant: '#8A6BA8', synFunction: '#3E6E80',
           synParameter: '#2E3440', synPunctuation: '#2E3440', synLink: '#4C6E95'
@@ -468,8 +472,8 @@ window.__ModuleLoader__.load({
           layer3: '#4C566A', ink: '#D8DEE9', secondary: '#AAB4C6', border: '#4C566A', labelTertiary: '#96A1B5',
           labelCaption: '#7B88A1', borderL1: '#3C4353', borderL3: '#60697C', borderL4: '#737C8E', brand: '#88C0D0',
           buttonHover: '#9FCFDD', elevated: '#434C5E', success: '#A3BE8C', warn: '#EBCB8B', error: '#BF616A',
-          codeBlock: '#2E3440', codeBanner: '#3B4252', inlineCode: '#3B4252', diffAdded: '#A3BE8C2E', diffDeleted: '#BF616A2E',
-          scrollbar: '#626B7D', scrollbarHover: '#778092', synForeground: '#D8DEE9', synBackground: '#2E3440', synComment: '#7B88A1',
+          codeBlock: '#3B4252', codeBanner: '#434C5E', inlineCode: '#3B4252', diffAdded: '#A3BE8C2E', diffDeleted: '#BF616A2E',
+          scrollbar: '#626B7D', scrollbarHover: '#778092', synForeground: '#D8DEE9', synBackground: '#3B4252', synComment: '#8FA0B8',
           synString: '#A3BE8C', synStringExpr: '#D8DEE9', synKeyword: '#81A1C1', synConstant: '#B48EAD', synFunction: '#88C0D0',
           synParameter: '#D8DEE9', synPunctuation: '#D8DEE9', synLink: '#88C0D0'
         },
@@ -481,7 +485,7 @@ window.__ModuleLoader__.load({
           layer3: '#FFFFFF', ink: '#1F2328', secondary: '#57606A', border: '#D0D7DE', labelTertiary: '#636C76',
           labelCaption: '#6E7781', borderL1: '#EAEDF0', borderL3: '#B7BEC5', borderL4: '#9EA5AB', brand: '#0969DA',
           buttonHover: '#0550AE', elevated: '#EAEEF2', success: '#1A7F37', warn: '#9A6700', error: '#CF222E',
-          codeBlock: '#F6F8FA', codeBanner: '#F6F8FA', inlineCode: '#F6F8FA', diffAdded: '#1A7F3726', diffDeleted: '#CF222E26',
+          codeBlock: '#F6F8FA', codeBanner: '#EAEEF2', inlineCode: '#F6F8FA', diffAdded: '#1A7F3726', diffDeleted: '#CF222E26',
           scrollbar: '#BEC3C9', scrollbarHover: '#A1A7AE', synForeground: '#1F2328', synBackground: '#F6F8FA', synComment: '#6E7781',
           synString: '#0A3069', synStringExpr: '#0A3069', synKeyword: '#CF222E', synConstant: '#0550AE', synFunction: '#8250DF',
           synParameter: '#1F2328', synPunctuation: '#1F2328', synLink: '#0969DA'
@@ -491,8 +495,8 @@ window.__ModuleLoader__.load({
           layer3: '#30363D', ink: '#E6EDF3', secondary: '#9198A1', border: '#30363D', labelTertiary: '#848D97',
           labelCaption: '#6E7681', borderL1: '#1D2228', borderL3: '#495056', borderL4: '#636970', brand: '#58A6FF',
           buttonHover: '#79C0FF', elevated: '#21262D', success: '#3FB950', warn: '#D29922', error: '#F85149',
-          codeBlock: '#0D1117', codeBanner: '#161B22', inlineCode: '#161B22', diffAdded: '#3FB9502E', diffDeleted: '#F851492E',
-          scrollbar: '#434850', scrollbarHover: '#595F67', synForeground: '#E6EDF3', synBackground: '#0D1117', synComment: '#8B949E',
+          codeBlock: '#161B22', codeBanner: '#21262D', inlineCode: '#161B22', diffAdded: '#3FB9502E', diffDeleted: '#F851492E',
+          scrollbar: '#434850', scrollbarHover: '#595F67', synForeground: '#E6EDF3', synBackground: '#161B22', synComment: '#8B949E',
           synString: '#A5D6FF', synStringExpr: '#E6EDF3', synKeyword: '#FF7B72', synConstant: '#79C0FF', synFunction: '#D2A8FF',
           synParameter: '#E6EDF3', synPunctuation: '#E6EDF3', synLink: '#58A6FF'
         },
@@ -504,7 +508,7 @@ window.__ModuleLoader__.load({
           layer3: '#FFFFFF', ink: '#4C4F69', secondary: '#61647A', border: '#CCD0DA', labelTertiary: '#6A6D80',
           labelCaption: '#7C7F93', borderL1: '#DFE2E9', borderL3: '#BABECA', borderL4: '#A8ACBA', brand: '#1E66F5',
           buttonHover: '#0B4FD1', elevated: '#DCE0E8', success: '#3A8F27', warn: '#9A6410', error: '#D20F39',
-          codeBlock: '#E6E9EF', codeBanner: '#E6E9EF', inlineCode: '#E6E9EF', diffAdded: '#3A8F2726', diffDeleted: '#D20F3926',
+          codeBlock: '#E6E9EF', codeBanner: '#DCE0E8', inlineCode: '#E6E9EF', diffAdded: '#3A8F2726', diffDeleted: '#D20F3926',
           scrollbar: '#B7BBC7', scrollbarHover: '#9FA2B1', synForeground: '#4C4F69', synBackground: '#E6E9EF', synComment: '#6A6D80',
           synString: '#3A8F27', synStringExpr: '#3A8F27', synKeyword: '#8839EF', synConstant: '#C24E00', synFunction: '#1E66F5',
           synParameter: '#4C4F69', synPunctuation: '#4C4F69', synLink: '#14708A'
@@ -514,8 +518,8 @@ window.__ModuleLoader__.load({
           layer3: '#585B70', ink: '#CDD6F4', secondary: '#A6ADC8', border: '#45475A', labelTertiary: '#9399B2',
           labelCaption: '#7F849C', borderL1: '#303042', borderL3: '#585B70', borderL4: '#6B6F85', brand: '#89B4FA',
           buttonHover: '#A3C7FB', elevated: '#45475A', success: '#A6E3A1', warn: '#F9E2AF', error: '#F38BA8',
-          codeBlock: '#1E1E2E', codeBanner: '#313244', inlineCode: '#313244', diffAdded: '#A6E3A12E', diffDeleted: '#F38BA82E',
-          scrollbar: '#62667B', scrollbarHover: '#767A91', synForeground: '#CDD6F4', synBackground: '#1E1E2E', synComment: '#7F849C',
+          codeBlock: '#181825', codeBanner: '#1E1E2E', inlineCode: '#181825', diffAdded: '#A6E3A12E', diffDeleted: '#F38BA82E',
+          scrollbar: '#62667B', scrollbarHover: '#767A91', synForeground: '#CDD6F4', synBackground: '#181825', synComment: '#7F849C',
           synString: '#A6E3A1', synStringExpr: '#CDD6F4', synKeyword: '#CBA6F7', synConstant: '#FAB387', synFunction: '#89B4FA',
           synParameter: '#CDD6F4', synPunctuation: '#CDD6F4', synLink: '#74C7EC'
         },
