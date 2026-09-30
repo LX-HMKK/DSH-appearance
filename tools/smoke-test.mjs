@@ -100,16 +100,16 @@ ok('注册进 settings.section', slot && slot.opts.name === 'settings.section' &
 ok('起始覆盖层为空（默认配置不覆盖任何 token）', Object.keys(calls.overrides[0].tokens).length === 0, JSON.stringify(calls.overrides[0].tokens));
 
 console.log('SECTION 3: 配置变化 -> 覆盖层重放');
-await scope.set('preset', 'forest');
+await scope.set('preset', 'dracula');
 let last = calls.overrides[calls.overrides.length - 1];
-ok('预设写入后出现强调色覆盖', last.tokens['--dsw-alias-state-business-primary'] && last.tokens['--dsw-alias-state-business-primary'].light === '#18794E', JSON.stringify(last.tokens['--dsw-alias-state-business-primary']));
+ok('预设写入后出现强调色覆盖', last.tokens['--dsw-alias-state-business-primary'] && last.tokens['--dsw-alias-state-business-primary'].light === '#644AC9', JSON.stringify(last.tokens['--dsw-alias-state-business-primary']));
 ok('覆盖层是 {light,dark} 成对结构', Object.values(last.tokens).every((v) => typeof v.light === 'string' && typeof v.dark === 'string'));
 await scope.set('uiFont', 'Inter, sans-serif');
 last = calls.overrides[calls.overrides.length - 1];
 ok('字体写入后出现 --dsw-font-family', last.tokens['--dsw-font-family'] && last.tokens['--dsw-font-family'].light === 'Inter, sans-serif', JSON.stringify(last.tokens['--dsw-font-family']));
 await scope.set('accentDark', '#00FF00');
 last = calls.overrides[calls.overrides.length - 1];
-ok('手填强调色盖过预设（深色档）', last.tokens['--dsw-alias-state-business-primary'].dark === '#00FF00' && last.tokens['--dsw-alias-state-business-primary'].light === '#18794E', JSON.stringify(last.tokens['--dsw-alias-state-business-primary']));
+ok('手填强调色盖过预设（深色档）', last.tokens['--dsw-alias-state-business-primary'].dark === '#00FF00' && last.tokens['--dsw-alias-state-business-primary'].light === '#644AC9', JSON.stringify(last.tokens['--dsw-alias-state-business-primary']));
 ok('同一 source 复用（层叠语义：整层替换）', new Set(calls.overrides.map((o) => o.source)).size === 1, JSON.stringify([...new Set(calls.overrides.map((o) => o.source))]));
 
 console.log('SECTION 4: 页面渲染');
@@ -135,8 +135,8 @@ try { text = render(slot.component({ store, actions, t })).join(' | '); }
 catch (error) { failures++; console.log('  FAIL  页面渲染抛错 -> ' + error.message); }
 ok('渲染出了标题', text.includes('外观增强'));
 ok('渲染出了三张卡片', text.includes('字体') && text.includes('配色') && text.includes('高级'));
-const presetLabels = ['默认', 'One Dark Pro', '石墨', '深海', '暖沙', '森绿', '高对比'];
-ok('渲染出了全部 7 个预设', presetLabels.every((label) => text.includes(label)), presetLabels.filter((l) => !text.includes(l)).join(',') || 'all present');
+const presetLabels = ['默认', 'One Dark Pro', 'Dracula', 'Nord', 'GitHub', 'Catppuccin'];
+ok('渲染出了全部 6 个预设', presetLabels.every((label) => text.includes(label)), presetLabels.filter((l) => !text.includes(l)).join(',') || 'all present');
 ok('渲染出了字号步进器', /14 px/.test(text));
 const tree = slot.component({ store, actions, t });
 const collect = (node, out) => {
@@ -201,9 +201,9 @@ ok('导出文本可被 JSON 解析', (() => { try { JSON.parse(exportedText.slic
 await scope.mutate([{ op: 'unset', path: ['preset'] }, { op: 'unset', path: ['uiFont'] }, { op: 'unset', path: ['accentDark'] }]);
 last = calls.overrides[calls.overrides.length - 1];
 ok('清空全部字段后覆盖层回到空', Object.keys(last.tokens).length === 0, JSON.stringify(last.tokens));
-await scope.set('preset', 'graphite');
+await scope.set('preset', 'nord');
 last = calls.overrides[calls.overrides.length - 1];
-ok('再次切换预设立即生效（回归：不再滞后一帧）', last.tokens['--dsw-alias-bg-base'] && last.tokens['--dsw-alias-bg-base'].light === '#FFFFFF', JSON.stringify(last.tokens['--dsw-alias-bg-base']));
+ok('再次切换预设立即生效（回归：不再滞后一帧）', last.tokens['--dsw-alias-bg-base'] && last.tokens['--dsw-alias-bg-base'].light === '#ECEFF4', JSON.stringify(last.tokens['--dsw-alias-bg-base']));
 
 console.log('SECTION 5b: One Dark Pro 的覆盖范围');
 await scope.set('preset', 'onedark');
@@ -211,8 +211,8 @@ last = calls.overrides[calls.overrides.length - 1];
 const od = last.tokens;
 ok('覆盖 38 个 token（8 基础 + 30 外围与语法）', Object.keys(od).length === 38, String(Object.keys(od).length));
 ok('语法高亮关键字色进了覆盖层', !!od['--shiki-token-keyword'] && od['--shiki-token-keyword'].dark === '#C678DD', JSON.stringify(od['--shiki-token-keyword']));
-ok('语法高亮是明暗成对的', !!od['--shiki-token-comment'] && od['--shiki-token-comment'].light === '#696C77' && od['--shiki-token-comment'].dark === '#8E97A7', JSON.stringify(od['--shiki-token-comment']));
-ok('代码块底色跟随预设', !!od['--dsw-alias-markdown-code-block'] && od['--dsw-alias-markdown-code-block'].dark === '#282C34', JSON.stringify(od['--dsw-alias-markdown-code-block']));
+ok('语法高亮是明暗成对的', !!od['--shiki-token-comment'] && od['--shiki-token-comment'].light === '#696C77' && od['--shiki-token-comment'].dark === '#7F848E', JSON.stringify(od['--shiki-token-comment']));
+ok('代码块底色跟随预设', !!od['--dsw-alias-markdown-code-block'] && od['--dsw-alias-markdown-code-block'].dark === '#23272E', JSON.stringify(od['--dsw-alias-markdown-code-block']));
 ok('外围 token 也进了覆盖层', !!od['--dsw-alias-label-tertiary'] && !!od['--dsw-alias-bg-layer-3'] && !!od['--dsw-alias-brand-primary']);
 ok('只有 One Dark Pro 覆盖外围（老预设仍是 8 个）', (await (async () => { await scope.set('preset', 'default'); return Object.keys(calls.overrides[calls.overrides.length - 1].tokens).length; })()) === 0);
 

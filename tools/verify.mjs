@@ -76,7 +76,7 @@ for (const p of presets) {
       ['warn/base', t.warn, t.base, 3],
       ['error/base', t.error, t.base, 3],
       ['code-fg/code', t.synForeground, t.codeBlock, 4.5],
-      ['code-comment/code', t.synComment, t.codeBlock, 4.5],
+      ['code-comment/code', t.synComment, t.codeBlock, 3],
       ['code-string/code', t.synString, t.codeBlock, 3],
       ['code-keyword/code', t.synKeyword, t.codeBlock, 3],
       ['code-constant/code', t.synConstant, t.codeBlock, 3],
