@@ -380,15 +380,6 @@ window.__ModuleLoader__.load({
     /**
      * 配色预设：每种给出浅色/深色两套 token 值；default 不覆盖任何 token。
      *
-     * onedark = One Dark Pro 系（深色用 **Darker** 档：底色 #21252B、表面 #282C34、
-     * 强调 #61AFEF；浅色用 One Light）。底色/强调色/边框/语法色都取原版色号，
-     * 只有"当文字用"的几档提亮到满足 WCAG——原版正文 #ABB2BF 在 #282C34 上只有
-     * 6.6:1，达不到本仓库 7:1 的正文标准，这里用 #C3C9D4（8.4:1）。
-     * 它是唯一声明了 TOKEN_MORE 的预设，所以外围与代码块也一起换色。
-     */
-    /**
-     * 配色预设：每种给出浅色/深色两套 token 值；default 不覆盖任何 token。
-     *
      * 五种主题都取**各自的官方色板**，不做主观发挥：
      *   onedark    One Dark Pro（深色用 Darker 档 #23272E、侧栏 #1E2227、正文 #ABB2BF、
      *              语法色取自扩展自带的 OneDark-Pro-darker.json；浅色对应 One Light）
@@ -534,6 +525,9 @@ window.__ModuleLoader__.load({
       for (const field of FIELDS) {
         out[field] = typeof source[field] === 'string' ? source[field] : ''
       }
+      // 认不出的预设 id（例如旧版本删掉的那几套）一律按"默认"处理：否则页面上一格
+      // 都不高亮，导出的配置里还留着一个不存在的 id。
+      if (!PRESETS.some(function (item) { return item.id === out.preset })) out.preset = 'default'
       return out
     }
 
@@ -556,11 +550,10 @@ window.__ModuleLoader__.load({
       }
       const preset = PRESETS.find((item) => item.id === values.preset)
       if (preset && preset.light) {
-        for (const key of Object.keys(TOKEN)) {
-          put(TOKEN[key], preset.light[key], preset.dark[key])
-        }
-        for (const key of Object.keys(TOKEN_MORE)) {
-          put(TOKEN_MORE[key], preset.light[key], preset.dark[key])
+        // TOKEN 是每个预设都必须给的 8 个基础项；TOKEN_MORE 是可选的外围与语法项，
+        // 没声明的字段 put() 会跳过——所以只有声明了它们的预设才覆盖外围。
+        for (const map of [TOKEN, TOKEN_MORE]) {
+          for (const key of Object.keys(map)) put(map[key], preset.light[key], preset.dark[key])
         }
       }
       if (values.uiFont) put('--dsw-font-family', values.uiFont, values.uiFont)
@@ -584,7 +577,6 @@ window.__ModuleLoader__.load({
       const listeners = new Set()
       return {
         get: function () { return snapshot },
-        peek: function () { return snapshot },
         subscribe: function (listener) {
           listeners.add(listener)
           return function () { listeners.delete(listener) }
@@ -1341,7 +1333,7 @@ window.__ModuleLoader__.load({
             store.refresh()
           }).catch(function (error) {
             localFonts.status = 'unavailable'
-            localFonts.error = String((error && error.message) || error)
+            console.warn('[dsh-appearance] local font enumeration failed', error)
             store.refresh()
           })
         },

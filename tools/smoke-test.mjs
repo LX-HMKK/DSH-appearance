@@ -216,6 +216,15 @@ ok('代码块底色跟随预设', !!od['--dsw-alias-markdown-code-block'] && od[
 ok('外围 token 也进了覆盖层', !!od['--dsw-alias-label-tertiary'] && !!od['--dsw-alias-bg-layer-3'] && !!od['--dsw-alias-brand-primary']);
 ok('只有 One Dark Pro 覆盖外围（老预设仍是 8 个）', (await (async () => { await scope.set('preset', 'default'); return Object.keys(calls.overrides[calls.overrides.length - 1].tokens).length; })()) === 0);
 
+console.log('SECTION 5c: 旧预设 id 的兜底（升级路径）');
+await scope.set('preset', 'graphite');
+last = calls.overrides[calls.overrides.length - 1];
+ok('已删除的预设 id 不再产生任何覆盖', Object.keys(last.tokens).length === 0, JSON.stringify(Object.keys(last.tokens)));
+const exportedAfterStale = JSON.parse(realProps.actions.exportText().slice('dsh-appearance-v1:'.length));
+ok('导出的配置里不会留着不存在的 id', exportedAfterStale.preset === 'default', String(exportedAfterStale.preset));
+ok('页面快照里同样归一成 default', realProps.store.get().values.preset === 'default', String(realProps.store.get().values.preset));
+await scope.set('preset', 'default');
+
 console.log('SECTION 6: 本机字体枚举（走真实 apply 注入的 actions/store）');
 const real = realProps;
 ok('注入里带 loadLocalFonts', typeof real.actions.loadLocalFonts === 'function');

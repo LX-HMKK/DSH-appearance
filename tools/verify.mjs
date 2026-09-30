@@ -5,7 +5,13 @@ import path from 'node:path';
 const root = process.argv[2];
 const client = fs.readFileSync(path.join(root, 'client.js'), 'utf8');
 const host = fs.readFileSync(path.join(root, 'index.js'), 'utf8');
-const archive = process.argv[3] || 'D:/SoftwareOfStudy/DS_H/resources/app.asar';
+/* 安装包位置：第二个参数 > DSH_ASAR 环境变量 > 本机默认路径；找不到就明确失败，不静默跳过校验。 */
+const archive = process.argv[3] || process.env.DSH_ASAR || 'D:/SoftwareOfStudy/DS_H/resources/app.asar';
+if (!fs.existsSync(archive)) {
+  console.log('ASAR NOT FOUND: ' + archive);
+  console.log('  用 node tools/verify.mjs <插件目录> <app.asar 路径>，或设环境变量 DSH_ASAR。');
+  process.exit(1);
+}
 
 /* ---- 1. 抽出插件用到的 token 名 ---- */
 const TOKEN = "(--dsw-[a-z0-9-]+|--ds-[a-z0-9-]+|--shiki-[a-z0-9-]+)";
@@ -58,6 +64,13 @@ while ((m = re.exec(presetSrc))) {
 }
 let worst = { label: '', value: 99 };
 let failures = 0;
+/* 护栏：源码里带 light/dark 的预设条数必须与解析出的条数一致，否则格式一改就变成
+   「0 套通过」——default 预设没有 light/dark，所以按 light: { 计数而不是按 id。 */
+const declaredPresets = (presetSrc.match(/light: \{/g) || []).length;
+if (declaredPresets !== presets.length) {
+  failures++;
+  console.log('  FAIL 预设解析数量不符：源码 ' + declaredPresets + ' 个，解析出 ' + presets.length + ' 个');
+}
 for (const p of presets) {
   for (const mode of ['light', 'dark']) {
     const t = p[mode];

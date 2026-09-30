@@ -34,7 +34,7 @@ tools/                   零依赖开发工具
 
 ```sh
 npm run check            # = test + verify，提交前必跑
-npm test                 # 冒烟测试（51 项断言）
+npm test                 # 冒烟测试（54 项断言）
 npm run verify           # token 名 + WCAG 对比度
 npm run hooks:install    # 安装 commit-msg 钩子（新克隆的仓库跑一次）
 ```
@@ -60,7 +60,7 @@ npx -y --package @deepseek-ai/dsh dsh plugin --profile desktop add <本仓库绝
 7. **字号只走 `ctx.theme.setFontSize(10..22)`**：`--dsh-content-font-size` 由 ui-layout 在每次主题快照时重写，自己设会被冲掉，且组件高度按该轴阶梯推导。
 8. **首屏样式的选择器用 `html:root`**（特异度 0,1,1），不要用 `:root`（0,1,0）：注入行位于 `<head>` 最前面，只有特异度更高才能在 base.css 之后继续生效。
 9. **`peerDependencies` 只声明 `@deepseek-ai/cordis`**：DSH 会在安装前校验每一个已声明的 `@deepseek-ai/dsh-*` 版本范围，写多了会直接装不上。
-10. **配色预设必须用主题官方色值**，不要凭感觉配：五套预设分别取自 One Dark Pro（Darker 档，色值在 `~/.vscode/extensions/zhuangtongfa.material-theme*/themes/OneDark-Pro-darker.json`）、Dracula / Alucard、Nord、GitHub Primer、Catppuccin Mocha / Latte。只有主题未公布的灰阶才允许按自身灰阶插值，浅色档对比度不足的原版彩色可以压暗，二者都要在 README 里说明；改完必须跑 `npm run check`（38 个 token 的对比度门槛在 `tools/verify.mjs`）。
+10. **配色预设必须用主题官方色值**，不要凭感觉配：五套预设分别取自 One Dark Pro（Darker 档，色值在 `~/.vscode/extensions/zhuangtongfa.material-theme*/themes/OneDark-Pro-darker.json`）、Dracula / Alucard、Nord、GitHub Primer、Catppuccin Mocha / Latte。只有主题未公布的灰阶才允许按自身灰阶插值，浅色档对比度不足的原版彩色可以压暗，二者都要在 README 里说明；加主题或改色用 `node tools/gen-presets.cjs` 生成字面量（别手抄 38 个字段），改完必须跑 `npm run check`（对比度门槛在 `tools/verify.mjs`）。
 
 ## 提交规范
 
