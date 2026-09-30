@@ -60,22 +60,22 @@ window.__ModuleLoader__.load({
       { key: 'font.follow', family: '', stack: '', group: 'fontGroup.recommended' },
       { key: 'font.system', family: '', stack: UI_FALLBACK, group: 'fontGroup.recommended' },
       // 中文黑体
-      { key: 'font.noto', family: 'Noto Sans SC', group: 'fontGroup.cjkSans', script: 'cjk' },
-      { key: 'font.harmony', family: 'HarmonyOS Sans SC', group: 'fontGroup.cjkSans', script: 'cjk' },
+      { key: 'font.noto', family: 'Noto Sans SC', group: 'fontGroup.cjkSans', script: 'cjk', pick: true },
+      { key: 'font.harmony', family: 'HarmonyOS Sans SC', group: 'fontGroup.cjkSans', script: 'cjk', pick: true },
       { key: 'font.misans', family: 'MiSans', group: 'fontGroup.cjkSans', script: 'cjk' },
       { key: 'font.puhuiti', family: 'Alibaba PuHuiTi 3.0', group: 'fontGroup.cjkSans', script: 'cjk' },
-      { key: 'font.pingfang', family: 'PingFang SC', group: 'fontGroup.cjkSans', script: 'cjk' },
-      { key: 'font.yahei', family: 'Microsoft YaHei', group: 'fontGroup.cjkSans', script: 'cjk' },
+      { key: 'font.pingfang', family: 'PingFang SC', group: 'fontGroup.cjkSans', script: 'cjk', pick: true },
+      { key: 'font.yahei', family: 'Microsoft YaHei', group: 'fontGroup.cjkSans', script: 'cjk', pick: true },
       { key: 'font.sarasaGothic', family: 'Sarasa Gothic SC', group: 'fontGroup.cjkSans', script: 'cjk' },
       // 中文宋楷
-      { key: 'font.notoSerif', family: 'Noto Serif SC', group: 'fontGroup.cjkSerif', script: 'cjk' },
-      { key: 'font.lxgw', family: 'LXGW WenKai', group: 'fontGroup.cjkSerif', script: 'cjk' },
+      { key: 'font.notoSerif', family: 'Noto Serif SC', group: 'fontGroup.cjkSerif', script: 'cjk', pick: true },
+      { key: 'font.lxgw', family: 'LXGW WenKai', group: 'fontGroup.cjkSerif', script: 'cjk', pick: true },
       { key: 'font.lxgwScreen', family: 'LXGW WenKai Screen', group: 'fontGroup.cjkSerif', script: 'cjk' },
       { key: 'font.serif', family: 'Songti SC', group: 'fontGroup.cjkSerif', script: 'cjk' },
       { key: 'font.simsun', family: 'SimSun', group: 'fontGroup.cjkSerif', script: 'cjk' },
       { key: 'font.kaiti', family: 'Kaiti SC', group: 'fontGroup.cjkSerif', script: 'cjk' },
       // 西文无衬线
-      { family: 'Inter', group: 'fontGroup.latinSans' },
+      { family: 'Inter', group: 'fontGroup.latinSans', pick: true },
       { family: 'Roboto', group: 'fontGroup.latinSans' },
       { family: 'Open Sans', group: 'fontGroup.latinSans' },
       { family: 'Lato', group: 'fontGroup.latinSans' },
@@ -101,7 +101,7 @@ window.__ModuleLoader__.load({
       { family: 'Crimson Pro', group: 'fontGroup.latinSerif' },
       { family: 'Noto Serif', group: 'fontGroup.latinSerif' },
       // 展示与圆体
-      { key: 'font.smiley', family: 'Smiley Sans', group: 'fontGroup.display', script: 'cjk' },
+      { key: 'font.smiley', family: 'Smiley Sans', group: 'fontGroup.display', script: 'cjk', pick: true },
       { key: 'font.rounded', family: 'Yuanti SC', group: 'fontGroup.display', script: 'cjk' },
       { key: 'font.youyuan', family: 'YouYuan', group: 'fontGroup.display', script: 'cjk' },
       { family: 'Quicksand', group: 'fontGroup.display' },
@@ -114,9 +114,9 @@ window.__ModuleLoader__.load({
     const CODE_FONTS = [
       { key: 'code.follow', family: '', stack: '', group: 'fontGroup.recommended' },
       { key: 'code.default', family: '', stack: CODE_FALLBACK, group: 'fontGroup.recommended' },
-      { family: 'JetBrains Mono', group: 'fontGroup.mono' },
-      { family: 'Fira Code', group: 'fontGroup.mono' },
-      { family: 'Cascadia Code', group: 'fontGroup.mono' },
+      { family: 'JetBrains Mono', group: 'fontGroup.mono', pick: true },
+      { family: 'Fira Code', group: 'fontGroup.mono', pick: true },
+      { family: 'Cascadia Code', group: 'fontGroup.mono', pick: true },
       { family: 'Cascadia Mono', group: 'fontGroup.mono' },
       { family: 'Source Code Pro', group: 'fontGroup.mono' },
       { family: 'IBM Plex Mono', group: 'fontGroup.mono' },
@@ -129,9 +129,9 @@ window.__ModuleLoader__.load({
       { family: 'Hack', group: 'fontGroup.mono' },
       { family: 'Ubuntu Mono', group: 'fontGroup.mono' },
       { family: 'Noto Sans Mono', group: 'fontGroup.mono' },
-      { key: 'code.sarasa', family: 'Sarasa Mono SC', group: 'fontGroup.mono' },
+      { key: 'code.sarasa', family: 'Sarasa Mono SC', group: 'fontGroup.mono', pick: true },
       { family: 'Menlo', group: 'fontGroup.mono' },
-      { family: 'Consolas', group: 'fontGroup.mono' },
+      { family: 'Consolas', group: 'fontGroup.mono', pick: true },
       { family: 'SF Mono', group: 'fontGroup.mono' },
     ]
 
@@ -182,55 +182,67 @@ window.__ModuleLoader__.load({
       const fallback = kind === 'code' ? CODE_FALLBACK : UI_FALLBACK
       const curated = kind === 'code' ? CODE_FONTS : UI_FONTS
       const index = curatedIndex(kind)
-      const options = baseFontOptions(kind, t)
+      const base = baseFontOptions(kind, t)
+      const picks = base.slice()
+      const all = base.slice()
       const missing = []
 
-      const pushFamily = function (family, stack) {
+      const entryOf = function (family, stack) {
         const known = index[family.toLowerCase()]
         const cjk = known ? known.script === 'cjk' : isCjkFamily(family)
-        // 注意 known.key 可能不存在（西文字体只用家族名作标签），不能直接 t(known.key)
-        const label = known && known.key ? t(known.key) : family
-        options.push({
+        return {
           id: 'family:' + family,
-          label: label,
+          // 注意 known.key 可能不存在（西文字体只用家族名作标签），不能直接 t(known.key)
+          label: known && known.key ? t(known.key) : family,
           family: family,
           stack: stack,
           groupKey: cjk ? 'fontGroup.localCjk' : 'fontGroup.localLatin',
           script: cjk ? 'cjk' : 'latin',
-        })
+        }
+      }
+      const pushTo = function (list, option) {
+        if (!list.some(function (item) { return item.id === option.id })) list.push(option)
       }
 
       if (localFonts.status === 'ready') {
-        for (const family of localFonts.families) pushFamily(family, stackOf(family, fallback))
+        const installed = {}
+        for (const family of localFonts.families) installed[family.toLowerCase()] = family
+        // 默认短名单：精选表里标了 pick、且本机确实装了的
         for (const item of curated) {
-          if (!item.family || !item.key) continue
-          const installed = localFonts.families.some(function (family) {
-            return family.toLowerCase() === item.family.toLowerCase()
-          })
-          if (!installed) missing.push(t(item.key))
+          if (!item.family || !item.pick) continue
+          const actual = installed[item.family.toLowerCase()]
+          if (actual) pushTo(picks, entryOf(actual, stackOf(actual, fallback)))
+        }
+        // 「全部」：本机装了什么就列什么
+        for (const family of localFonts.families) pushTo(all, entryOf(family, stackOf(family, fallback)))
+        // 推荐但没装：只提示 pick 的那几个，不要一次抛五十个名字
+        for (const item of curated) {
+          if (!item.family || !item.pick || !item.key) continue
+          if (!installed[item.family.toLowerCase()]) missing.push(t(item.key))
         }
       } else if (localFonts.status === 'unavailable') {
         // 读不到本机字体（无此 API 或权限被拒）：退回精选表，并在面板上说明
         for (const item of curated) {
           if (!item.family) continue
-          options.push({
-            id: item.key || 'family:' + item.family,
-            label: item.key ? t(item.key) : item.family,
-            family: item.family,
-            stack: stackOf(item.family, fallback),
-            groupKey: item.group,
-            script: item.script || 'latin',
-          })
+          pushTo(all, entryOf(item.family, stackOf(item.family, fallback)))
         }
+        for (const option of all.slice()) pushTo(picks, option)
       }
 
       // 当前选中的字体必须始终可见（比如刚导入的配置、或枚举不到的家族）
-      if (currentStack && !options.some(function (option) { return option.stack === currentStack })) {
-        const head = currentStack.split(',')[0].trim().replace(/^["']|["']$/g, '')
-        if (head) pushFamily(head, currentStack)
+      if (currentStack) {
+        const present = all.some(function (option) { return option.stack === currentStack })
+        if (!present) {
+          const head = currentStack.split(',')[0].trim().replace(/^["']|["']$/g, '')
+          if (head) {
+            const option = entryOf(head, currentStack)
+            pushTo(picks, option)
+            pushTo(all, option)
+          }
+        }
       }
 
-      return { options: options, missing: missing }
+      return { options: picks, allOptions: all, missing: missing }
     }
 
     /**
@@ -351,9 +363,9 @@ window.__ModuleLoader__.load({
       subtitle: '字体、配色与字号。改动即时生效，并保存在本机 profile 配置里。',
       fonts: '字体',
       uiFont: '界面与正文字体',
-      uiFontHint: '只列出本机已安装的字体；装了新字体后重新打开下拉即可看到。',
+      uiFontHint: '默认只列推荐字体；展开后可选本机已安装的全部字体。',
       codeFont: '代码字体',
-      codeFontHint: '用于代码块、JSON 与 diff，同样只列本机已安装的字体。',
+      codeFontHint: '用于代码块、JSON 与 diff，同样是推荐优先。',
       fontSize: '正文字号',
       fontSizeHint: '与「设置 → 通用」的字号是同一个值（10–22 px）。',
       colors: '配色',
@@ -419,6 +431,8 @@ window.__ModuleLoader__.load({
       'font.missingHint': '本机未安装的推荐字体：',
       'font.missingMore': ' 等 {n} 款',
       'font.missingTail': '。装好后重新打开即可选用。',
+      'font.showAll': '显示本机全部字体（共 {n}）',
+      'font.showPick': '只看推荐字体',
       'code.follow': '跟随 DSH 默认',
       'code.default': '默认等宽栈',
       'code.sarasa': '更纱黑体等宽',
@@ -436,9 +450,9 @@ window.__ModuleLoader__.load({
       subtitle: 'Fonts, palettes and text size. Changes apply instantly and persist in this profile.',
       fonts: 'Fonts',
       uiFont: 'Interface and body font',
-      uiFontHint: 'Lists fonts installed on this device only; install one and reopen the list.',
+      uiFontHint: 'Recommended fonts first; expand to see every installed font.',
       codeFont: 'Code font',
-      codeFontHint: 'Used for code blocks, JSON and diffs; installed fonts only.',
+      codeFontHint: 'Used for code blocks, JSON and diffs; recommended first.',
       fontSize: 'Body text size',
       fontSizeHint: 'The same value as Settings - General (10-22 px).',
       colors: 'Colors',
@@ -504,6 +518,8 @@ window.__ModuleLoader__.load({
       'font.missingHint': 'Recommended, not installed: ',
       'font.missingMore': ' and {n} more',
       'font.missingTail': '. They appear here once installed.',
+      'font.showAll': 'Show all installed fonts ({n})',
+      'font.showPick': 'Recommended only',
       'code.follow': 'Follow DSH default',
       'code.default': 'Default mono stack',
       'code.sarasa': 'Sarasa Mono SC',
@@ -561,6 +577,7 @@ window.__ModuleLoader__.load({
       pickerCheck: { flex: '0 0 auto', color: 'var(--dsw-alias-state-business-primary)', fontSize: 13, width: 12, textAlign: 'right' },
       pickerEmpty: { padding: 10, fontSize: 12, color: 'var(--dsw-alias-label-tertiary)' },
       pickerHint: { flex: '0 0 auto', marginTop: 6, padding: '8px 4px 2px', borderTop: '1px solid var(--dsw-alias-border-l1)', fontSize: 11, lineHeight: 1.55, color: 'var(--dsw-alias-label-tertiary)' },
+      pickerToggle: { flex: '0 0 auto', marginTop: 6, padding: '7px 8px', background: 'transparent', border: 'none', borderTop: '1px solid var(--dsw-alias-border-l1)', color: 'var(--dsw-alias-state-business-primary)', fontSize: 12, textAlign: 'left', cursor: 'pointer', borderRadius: 'var(--dsw-radius-sm, 8px)' },
     }
 
     /* ---------------------------------------------------------------- 控件 */
@@ -587,6 +604,7 @@ window.__ModuleLoader__.load({
       const [open, setOpen] = useState(false)
       const [query, setQuery] = useState('')
       const [active, setActive] = useState(0)
+      const [showAll, setShowAll] = useState(false)
       const rootRef = useRef(null)
 
       useEffect(function () {
@@ -603,11 +621,14 @@ window.__ModuleLoader__.load({
         }
       }, [open])
 
-      const current = matchFont(options, props.value)
+      const all = props.allOptions || options
+      const hasMore = all.length > options.length + 1
+      const list = showAll ? all : options
+      const current = matchFont(list, props.value) || matchFont(options, props.value)
       const keyword = query.trim().toLowerCase()
       const visible = keyword
-        ? options.filter(function (option) { return (option.label + ' ' + option.family).toLowerCase().indexOf(keyword) >= 0 })
-        : options
+        ? list.filter(function (option) { return (option.label + ' ' + option.family).toLowerCase().indexOf(keyword) >= 0 })
+        : list
 
       const choose = function (option) {
         if (!option) return
@@ -621,7 +642,13 @@ window.__ModuleLoader__.load({
           type: 'button',
           'aria-haspopup': 'listbox',
           'aria-expanded': open ? 'true' : 'false',
-          onClick: function () { setOpen(!open); if (!open) props.onOpen() },
+          onClick: function () {
+            const next = !open
+            setOpen(next)
+            setQuery('')
+            setActive(0)
+            if (next) { setShowAll(false); props.onOpen() }
+          },
           style: S.pickerTrigger,
         },
           h('span', { style: { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, current ? current.label : t('font.customName')),
@@ -666,6 +693,15 @@ window.__ModuleLoader__.load({
                     h('span', { style: Object.assign({}, S.pickerSample, { fontFamily: preview }) }, option.script === 'cjk' ? '\u6c38\u548c\u4e5d\u5e74' : 'Aa Bb 123'),
                     h('span', { style: S.pickerCheck }, selected ? '\u2713' : '')))
               })),
+            hasMore
+              ? h('button', {
+                  type: 'button',
+                  style: S.pickerToggle,
+                  onClick: function () { setShowAll(!showAll); setQuery(''); setActive(0) },
+                }, showAll
+                  ? t('font.showPick')
+                  : t('font.showAll').replace('{n}', String(all.length)))
+              : null,
             props.localStatus === 'idle' || props.localStatus === 'loading'
               ? h('div', { style: S.pickerHint }, t('font.loading'))
               : props.localStatus === 'unavailable'
@@ -780,6 +816,7 @@ window.__ModuleLoader__.load({
             h(FontPicker, {
               value: values.uiFont,
               options: uiFonts.options,
+              allOptions: uiFonts.allOptions,
               missing: uiFonts.missing,
               localStatus: localStatus,
               t: t,
@@ -790,6 +827,7 @@ window.__ModuleLoader__.load({
             h(FontPicker, {
               value: values.codeFont,
               options: codeFonts.options,
+              allOptions: codeFonts.allOptions,
               missing: codeFonts.missing,
               localStatus: localStatus,
               t: t,

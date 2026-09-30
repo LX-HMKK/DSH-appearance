@@ -178,6 +178,17 @@ await scope.set('preset', 'graphite');
 last = calls.overrides[calls.overrides.length - 1];
 ok('再次切换预设立即生效（回归：不再滞后一帧）', last.tokens['--dsw-alias-bg-base'] && last.tokens['--dsw-alias-bg-base'].light === '#FFFFFF', JSON.stringify(last.tokens['--dsw-alias-bg-base']));
 
+console.log('SECTION 6: 本机字体枚举（走真实 apply 注入的 actions/store）');
+const real = slot.opts.inject();
+ok('注入里带 loadLocalFonts', typeof real.actions.loadLocalFonts === 'function');
+globalThis.window.queryLocalFonts = async () => [{ family: 'Inter' }, { family: 'Noto Sans SC' }, { family: 'Inter' }, { family: '' }];
+await real.actions.loadLocalFonts();
+await new Promise((resolve) => setTimeout(resolve, 20));
+ok('枚举后状态就绪并按家族去重', real.store.get().localFonts === 'ready:2', String(real.store.get().localFonts));
+const text4 = render(slot.component(real)).join(' | ');
+ok('枚举后页面仍可渲染', text4.includes('外观增强'));
+try { await real.actions.loadLocalFonts(); ok('重复枚举是幂等的', true); } catch (error) { ok('重复枚举是幂等的', false, error.message); }
+
 try { fs.unlinkSync(hostTmp); } catch {}
 console.log('');
 console.log(failures === 0 ? 'SMOKE TEST: ALL PASS' : 'SMOKE TEST: ' + failures + ' FAILURE(S)');
