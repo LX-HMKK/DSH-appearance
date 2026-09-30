@@ -144,6 +144,40 @@ window.__ModuleLoader__.load({
       return /(hei|song|kai|ming|yahei|pingfang|hiragino|source han|sarasa|wenkai|misans|harmonyos|puhuiti|simsun|simhei|fangsong|yuanti|youyuan|dengxian|jhenghei|meiryo|malgun|noto sans (sc|tc|jp|kr)|noto serif (sc|tc|jp|kr)|source han (sans|serif))/i.test(name)
     }
 
+    /** 通用族名（不是真字体），拆栈时要跳过 */
+    const GENERIC_FAMILIES = /^(sans-serif|serif|monospace|system-ui|ui-sans-serif|ui-serif|ui-monospace|-apple-system|blinkmacsystemfont|inherit|emoji|math)$/i
+
+    function cleanFamily(part) {
+      return String(part || '').trim().replace(/^["']|["']$/g, '').trim()
+    }
+
+    /** 把一条已有的字体栈拆成"英文字体 + 中文字体"两个家族名 */
+    function splitStack(stack) {
+      const parts = String(stack || '').split(',').map(cleanFamily).filter(function (part) {
+        return part && !GENERIC_FAMILIES.test(part)
+      })
+      const result = { latin: '', cjk: '' }
+      for (const part of parts) {
+        if (isCjkFamily(part)) { if (!result.cjk) result.cjk = part }
+        else if (!result.latin) result.latin = part
+      }
+      return result
+    }
+
+    /**
+     * 合成界面字体栈：**英文字体在前、中文字体在后**。
+     * 顺序很关键——中文字体基本都自带西文字形，若排在前面，英文也会用中文字体渲染。
+     * 两者都为空则返回空串（= 跟随 DSH 默认）。
+     */
+    function composeUiStack(latin, cjk) {
+      const parts = []
+      if (latin) parts.push('"' + cleanFamily(latin).replace(/"/g, '') + '"')
+      if (cjk) parts.push('"' + cleanFamily(cjk).replace(/"/g, '') + '"')
+      if (parts.length === 0) return ''
+      parts.push(UI_FALLBACK)
+      return parts.join(', ')
+    }
+
     /** 把家族名安全地拼成字体栈（引号、逗号等一律清洗掉） */
     function stackOf(family, fallback) {
       const clean = String(family || '').replace(/["']/g, '').trim()
@@ -178,16 +212,21 @@ window.__ModuleLoader__.load({
      * 精选表只做三件事：给已知家族配中文名与字形归类、读不到本机字体时兜底、
      * 以及在面板底部提示"这些推荐的没装"。
      */
-    function fontOptions(kind, t, currentStack) {
+    function fontOptions(kind, t, currentValue, filter) {
+      const mode = filter || 'all'
+      /** 拆开选（中文/英文各一个框）时，选项的值是"家族名"，整条栈由插件合成 */
+      const pair = mode === 'latin' || mode === 'cjk'
       const fallback = kind === 'code' ? CODE_FALLBACK : UI_FALLBACK
       const curated = kind === 'code' ? CODE_FONTS : UI_FONTS
       const index = curatedIndex(kind)
-      const base = baseFontOptions(kind, t)
+      const base = pair
+        ? [{ id: 'none:' + mode, label: t('font.notSet'), family: '', stack: '', preview: 'inherit', script: mode, groupKey: 'fontGroup.recommended' }]
+        : baseFontOptions(kind, t)
       const picks = base.slice()
       const all = base.slice()
       const missing = []
 
-      const entryOf = function (family, stack) {
+      const familyEntry = function (family) {
         const known = index[family.toLowerCase()]
         const cjk = known ? known.script === 'cjk' : isCjkFamily(family)
         return {
@@ -195,11 +234,13 @@ window.__ModuleLoader__.load({
           // 注意 known.key 可能不存在（西文字体只用家族名作标签），不能直接 t(known.key)
           label: known && known.key ? t(known.key) : family,
           family: family,
-          stack: stack,
+          stack: pair ? family : stackOf(family, fallback),
+          preview: stackOf(family, fallback),
           groupKey: cjk ? 'fontGroup.localCjk' : 'fontGroup.localLatin',
           script: cjk ? 'cjk' : 'latin',
         }
       }
+      const keep = function (script) { return !pair || script === mode }
       const pushTo = function (list, option) {
         if (!list.some(function (item) { return item.id === option.id })) list.push(option)
       }
@@ -207,38 +248,45 @@ window.__ModuleLoader__.load({
       if (localFonts.status === 'ready') {
         const installed = {}
         for (const family of localFonts.families) installed[family.toLowerCase()] = family
-        // 默认短名单：精选表里标了 pick、且本机确实装了的
+        // 默认短名单：精选表里标了 pick、本机确实装了、且字形与当前框匹配
         for (const item of curated) {
           if (!item.family || !item.pick) continue
           const actual = installed[item.family.toLowerCase()]
-          if (actual) pushTo(picks, entryOf(actual, stackOf(actual, fallback)))
+          if (!actual || !keep(item.script === 'cjk' ? 'cjk' : 'latin')) continue
+          pushTo(picks, familyEntry(actual))
         }
         // 「全部」：本机装了什么就列什么
-        for (const family of localFonts.families) pushTo(all, entryOf(family, stackOf(family, fallback)))
+        for (const family of localFonts.families) {
+          if (!keep(isCjkFamily(family) ? 'cjk' : 'latin')) continue
+          pushTo(all, familyEntry(family))
+        }
         // 推荐但没装：只提示 pick 的那几个，不要一次抛五十个名字
         for (const item of curated) {
           if (!item.family || !item.pick || !item.key) continue
+          if (!keep(item.script === 'cjk' ? 'cjk' : 'latin')) continue
           if (!installed[item.family.toLowerCase()]) missing.push(t(item.key))
         }
       } else if (localFonts.status === 'unavailable') {
         // 读不到本机字体（无此 API 或权限被拒）：退回精选表，并在面板上说明
         for (const item of curated) {
           if (!item.family) continue
-          pushTo(all, entryOf(item.family, stackOf(item.family, fallback)))
+          if (!keep(item.script === 'cjk' ? 'cjk' : 'latin')) continue
+          pushTo(all, familyEntry(item.family))
         }
         for (const option of all.slice()) pushTo(picks, option)
       }
 
-      // 当前选中的字体必须始终可见（比如刚导入的配置、或枚举不到的家族）
-      if (currentStack) {
-        const present = all.some(function (option) { return option.stack === currentStack })
-        if (!present) {
-          const head = currentStack.split(',')[0].trim().replace(/^["']|["']$/g, '')
-          if (head) {
-            const option = entryOf(head, currentStack)
-            pushTo(picks, option)
-            pushTo(all, option)
-          }
+      // 当前选中的字体必须始终可见（导入的配置、或枚举不到的家族）
+      if (currentValue) {
+        const value = pair ? currentValue : currentValue.split(',')[0].trim().replace(/^["']|["']$/g, '')
+        const lower = String(value).toLowerCase()
+        const present = all.some(function (option) { return option.stack.toLowerCase() === lower })
+        if (value && !present) {
+          const option = pair
+            ? familyEntry(value)
+            : { id: 'current', label: value, family: value, stack: currentValue, preview: currentValue, script: 'latin', groupKey: 'fontGroup.localLatin' }
+          pushTo(picks, option)
+          pushTo(all, option)
         }
       }
 
@@ -253,6 +301,9 @@ window.__ModuleLoader__.load({
       if (!stack) return options.find(function (option) { return option.stack === '' }) || null
       const exact = options.find(function (option) { return option.stack === stack })
       if (exact) return exact
+      const lower = String(stack).toLowerCase()
+      const insensitive = options.find(function (option) { return option.stack.toLowerCase() === lower })
+      if (insensitive) return insensitive
       const head = stack.split(',')[0].trim().replace(/^["']|["']$/g, '').toLowerCase()
       if (!head) return null
       return options.find(function (option) { return option.family && option.family.toLowerCase() === head }) || null
@@ -363,7 +414,10 @@ window.__ModuleLoader__.load({
       subtitle: '字体、配色与字号。改动即时生效，并保存在本机 profile 配置里。',
       fonts: '字体',
       uiFont: '界面与正文字体',
-      uiFontHint: '默认只列推荐字体；展开后可选本机已安装的全部字体。',
+      uiFontPairHint: '中英文字体分开选：西文用英文字体，中文自动回退到中文字体。留空则跟随默认。',
+      latinFont: '英文字体',
+      cjkFont: '中文字体',
+      'font.notSet': '不指定（跟随默认）',
       codeFont: '代码字体',
       codeFontHint: '用于代码块、JSON 与 diff，同样是推荐优先。',
       fontSize: '正文字号',
@@ -450,7 +504,10 @@ window.__ModuleLoader__.load({
       subtitle: 'Fonts, palettes and text size. Changes apply instantly and persist in this profile.',
       fonts: 'Fonts',
       uiFont: 'Interface and body font',
-      uiFontHint: 'Recommended fonts first; expand to see every installed font.',
+      uiFontPairHint: 'Pick the Latin and Chinese families separately; Latin text uses the first, Chinese falls back to the second.',
+      latinFont: 'Latin font',
+      cjkFont: 'Chinese font',
+      'font.notSet': 'Not set (use default)',
       codeFont: 'Code font',
       codeFontHint: 'Used for code blocks, JSON and diffs; recommended first.',
       fontSize: 'Body text size',
@@ -560,7 +617,12 @@ window.__ModuleLoader__.load({
       segBtnOn: { background: 'var(--dsw-alias-bg-layer-1)', color: 'var(--dsw-alias-label-primary)' },
       textarea: { width: '100%', boxSizing: 'border-box', minHeight: 120, resize: 'vertical', background: 'var(--dsw-alias-bg-layer-1)', color: 'var(--dsw-alias-label-primary)', border: '1px solid var(--dsw-alias-border-l2)', borderRadius: 'var(--dsw-radius-sm, 8px)', padding: 8, fontSize: 12, fontFamily: 'var(--ds-font-family-code)' },
       btnRow: { display: 'flex', flexWrap: 'wrap', gap: 8 },
-      pickerRoot: { position: 'relative', display: 'inline-block' },
+      block: { display: 'flex', flexDirection: 'column', gap: 4 },
+      pairGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 8 },
+      pairCell: { display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 },
+      pairCaption: { fontSize: 12, color: 'var(--dsw-alias-label-secondary)' },
+      pickerTriggerBlock: { width: '100%', maxWidth: 'none', minWidth: 0, boxSizing: 'border-box' },
+      pickerRoot: { position: 'relative', display: 'block' },
       pickerTrigger: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, minWidth: 208, maxWidth: 268, padding: '6px 10px', background: 'var(--dsw-alias-bg-layer-1)', color: 'var(--dsw-alias-label-primary)', border: '1px solid var(--dsw-alias-border-l2)', borderRadius: 'var(--dsw-radius-sm, 8px)', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' },
       pickerCaret: { color: 'var(--dsw-alias-label-tertiary)', fontSize: 10, flex: '0 0 auto' },
       // 面板用不透明的 layer-2：宿主的 --dsw-menu-surface-fill 是半透明材质，
@@ -621,6 +683,10 @@ window.__ModuleLoader__.load({
         }
       }, [open])
 
+      const triggerStyle = props.triggerStyle ? Object.assign({}, S.pickerTrigger, props.triggerStyle) : S.pickerTrigger
+      const panelStyle = props.panelAlign === 'left'
+        ? Object.assign({}, S.pickerPanel, { left: 0, right: 'auto' })
+        : S.pickerPanel
       const all = props.allOptions || options
       const hasMore = all.length > options.length + 1
       const list = showAll ? all : options
@@ -649,7 +715,7 @@ window.__ModuleLoader__.load({
             setActive(0)
             if (next) { setShowAll(false); props.onOpen() }
           },
-          style: S.pickerTrigger,
+          style: triggerStyle,
         },
           h('span', { style: { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, current ? current.label : t('font.customName')),
           h('span', { style: S.pickerCaret }, open ? '\u25B4' : '\u25BE')),
@@ -657,7 +723,7 @@ window.__ModuleLoader__.load({
           ? h('div', {
               role: 'listbox',
               tabIndex: 0,
-              style: S.pickerPanel,
+              style: panelStyle,
               onKeyDown: function (event) {
                 if (event.key === 'ArrowDown') { event.preventDefault(); setActive(Math.min(active + 1, visible.length - 1)) }
                 else if (event.key === 'ArrowUp') { event.preventDefault(); setActive(Math.max(active - 1, 0)) }
@@ -675,7 +741,7 @@ window.__ModuleLoader__.load({
               visible.length === 0 ? h('div', { style: S.pickerEmpty }, t('font.empty')) : null,
               visible.map(function (option, index) {
                 const selected = option.stack === props.value
-                const preview = option.stack || 'inherit'
+                const preview = option.preview || option.stack || 'inherit'
                 const header = index === 0 || visible[index - 1].groupKey !== option.groupKey
                   ? h('div', { key: 'g:' + option.groupKey + ':' + index, style: S.pickerGroup }, t(option.groupKey))
                   : null
@@ -797,9 +863,17 @@ window.__ModuleLoader__.load({
           setNotice(ok ? '' : t('rejected'))
         })
       }
-      const uiFonts = fontOptions('ui', t, values.uiFont)
-      const codeFonts = fontOptions('code', t, values.codeFont)
+      const uiParts = splitStack(values.uiFont)
+      const uiLatinFonts = fontOptions('ui', t, uiParts.latin, 'latin')
+      const uiCjkFonts = fontOptions('ui', t, uiParts.cjk, 'cjk')
+      const codeFonts = fontOptions('code', t, values.codeFont, 'all')
       const localStatus = localFonts.status
+      /** 改动其中一个框：交给 actions 按最新已存值合成（避免连续改动互相覆盖） */
+      const setUiPart = function (part, family) {
+        Promise.resolve(actions.setUiFontPart(part, family)).then(function (ok) {
+          setNotice(ok ? '' : t('rejected'))
+        })
+      }
       const preset = PRESETS.find(function (item) { return item.id === values.preset }) || PRESETS[0]
       const presetValues = (variant === 'light' ? preset.light : preset.dark) || {}
       const suffix = variant === 'light' ? 'Light' : 'Dark'
@@ -812,17 +886,38 @@ window.__ModuleLoader__.load({
           snapshot.mode === 'memory' ? h('p', { style: S.notice }, t('memoryMode')) : null),
 
         h(Card, { title: t('fonts') },
-          h(Row, { title: t('uiFont'), hint: t('uiFontHint') },
-            h(FontPicker, {
-              value: values.uiFont,
-              options: uiFonts.options,
-              allOptions: uiFonts.allOptions,
-              missing: uiFonts.missing,
-              localStatus: localStatus,
-              t: t,
-              onOpen: actions.loadLocalFonts,
-              onChange: function (stack) { commit('uiFont', stack) },
-            })),
+          h('div', { style: S.block },
+            h('div', { style: S.label }, t('uiFont')),
+            h('div', { style: S.hint }, t('uiFontPairHint')),
+            h('div', { style: S.pairGrid },
+              h('div', { style: S.pairCell },
+                h('div', { style: S.pairCaption }, t('latinFont')),
+                h(FontPicker, {
+                  value: uiParts.latin,
+                  options: uiLatinFonts.options,
+                  allOptions: uiLatinFonts.allOptions,
+                  missing: uiLatinFonts.missing,
+                  localStatus: localStatus,
+                  t: t,
+                  triggerStyle: S.pickerTriggerBlock,
+                  panelAlign: 'left',
+                  onOpen: actions.loadLocalFonts,
+                  onChange: function (family) { setUiPart('latin', family) },
+                })),
+              h('div', { style: S.pairCell },
+                h('div', { style: S.pairCaption }, t('cjkFont')),
+                h(FontPicker, {
+                  value: uiParts.cjk,
+                  options: uiCjkFonts.options,
+                  allOptions: uiCjkFonts.allOptions,
+                  missing: uiCjkFonts.missing,
+                  localStatus: localStatus,
+                  t: t,
+                  triggerStyle: S.pickerTriggerBlock,
+                  panelAlign: 'right',
+                  onOpen: actions.loadLocalFonts,
+                  onChange: function (family) { setUiPart('cjk', family) },
+                })))),
           h(Row, { title: t('codeFont'), hint: t('codeFontHint') },
             h(FontPicker, {
               value: values.codeFont,
@@ -1022,6 +1117,15 @@ window.__ModuleLoader__.load({
             localFonts.error = String((error && error.message) || error)
             store.refresh()
           })
+        },
+        /**
+         * 改动"英文字体 / 中文字体"其中一个框：先读**最新已存值**再合成整条栈。
+         * 不能用渲染时的快照合成——连续改两个框时，第二次会拿旧值把第一次的选择覆盖掉。
+         */
+        setUiFontPart: async function (part, family) {
+          const parts = splitStack(normalize(scope.getSnapshot().value).uiFont)
+          parts[part] = family
+          return await actions.write('uiFont', composeUiStack(parts.latin, parts.cjk))
         },
         setFontSize: function (px) {
           try {

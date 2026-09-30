@@ -167,6 +167,33 @@ const text3 = render(slot.component({ store, actions, t })).join(' | ');
 ok('等宽字体同样显示家族名', text3.includes('JetBrains Mono') && !text3.includes('Cascadia Code, Consolas'), 'CODE_FONT_TEXT=' + text3.slice(0, 300));
 await scope.set('codeFont', '');
 
+console.log('SECTION 4c: 中英文字体拆分');
+await scope.set('uiFont', '"Inter", "Noto Sans SC", sans-serif');
+const realProps = slot.opts.inject();
+const rawTree = slot.component(realProps);
+const pickers = [];
+(function walkTree(node) {
+  if (!node || typeof node !== 'object') return;
+  if (Array.isArray(node)) return node.forEach(walkTree);
+  if (typeof node.type === 'function') {
+    if (node.type.name === 'FontPicker') pickers.push(node);
+    return walkTree(node.type(Object.assign({}, node.props, { children: node.children })));
+  }
+  (node.children || []).forEach(walkTree);
+})(rawTree);
+ok('页面有 3 个字体选择器（英文/中文/代码）', pickers.length === 3, String(pickers.length));
+const text5 = render(rawTree).join(' | ');
+ok('两个框分别显示英文字体与中文字体', text5.includes('Inter') && text5.includes('思源黑体'), text5.slice(0, 80));
+await pickers[1].props.onChange('LXGW WenKai');
+last = calls.overrides[calls.overrides.length - 1];
+const composed = last.tokens['--dsw-font-family'] && last.tokens['--dsw-font-family'].light;
+ok('选中文后合成「英文在前、中文在后」', typeof composed === 'string' && composed.indexOf('"Inter"') === 0 && composed.indexOf('"LXGW WenKai"') > 0, String(composed));
+await pickers[0].props.onChange('Roboto');
+last = calls.overrides[calls.overrides.length - 1];
+const composed2 = last.tokens['--dsw-font-family'] && last.tokens['--dsw-font-family'].light;
+ok('再选英文后中文保持不变', typeof composed2 === 'string' && composed2.indexOf('"Roboto"') === 0 && composed2.indexOf('"LXGW WenKai"') > 0, String(composed2));
+await scope.set('uiFont', '');
+
 console.log('SECTION 5: 导入 / 导出 / 重置');
 const exportedText = actions.exportText();
 ok('导出文本带协议前缀', exportedText.startsWith('dsh-appearance-v1:'));
@@ -179,7 +206,7 @@ last = calls.overrides[calls.overrides.length - 1];
 ok('再次切换预设立即生效（回归：不再滞后一帧）', last.tokens['--dsw-alias-bg-base'] && last.tokens['--dsw-alias-bg-base'].light === '#FFFFFF', JSON.stringify(last.tokens['--dsw-alias-bg-base']));
 
 console.log('SECTION 6: 本机字体枚举（走真实 apply 注入的 actions/store）');
-const real = slot.opts.inject();
+const real = realProps;
 ok('注入里带 loadLocalFonts', typeof real.actions.loadLocalFonts === 'function');
 globalThis.window.queryLocalFonts = async () => [{ family: 'Inter' }, { family: 'Noto Sans SC' }, { family: 'Inter' }, { family: '' }];
 await real.actions.loadLocalFonts();
