@@ -196,6 +196,7 @@ window.__ModuleLoader__.load({
       ink: '文字色',
       inkHint: '正文文字颜色。',
       followPreset: '跟随预设',
+      custom: '自定义…',
       reset: '重置',
       advanced: '高级',
       io: '导入 / 导出',
@@ -254,6 +255,7 @@ window.__ModuleLoader__.load({
       ink: 'Ink',
       inkHint: 'Body text color.',
       followPreset: 'Follow preset',
+      custom: 'Custom…',
       reset: 'Reset',
       advanced: 'Advanced',
       io: 'Import / Export',
@@ -440,7 +442,7 @@ window.__ModuleLoader__.load({
             h(Select, {
               value: fontIdOf(UI_FONTS, values.uiFont),
               options: UI_FONTS.map(function (item) { return { value: item.stack, label: t(item.key) } })
-                .concat([{ value: '__custom__', label: 'custom' }]),
+                .concat([{ value: '__custom__', label: t('custom') }]),
               onChange: function (stack) { if (stack !== '__custom__') commit('uiFont', stack) },
             })),
           h(StackInput, {
@@ -452,7 +454,7 @@ window.__ModuleLoader__.load({
             h(Select, {
               value: fontIdOf(CODE_FONTS, values.codeFont),
               options: CODE_FONTS.map(function (item) { return { value: item.stack, label: t(item.key) } })
-                .concat([{ value: '__custom__', label: 'custom' }]),
+                .concat([{ value: '__custom__', label: t('custom') }]),
               onChange: function (stack) { if (stack !== '__custom__') commit('codeFont', stack) },
             })),
           h(StackInput, {
