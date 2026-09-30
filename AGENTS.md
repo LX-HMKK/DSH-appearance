@@ -40,6 +40,10 @@ npm run hooks:install    # 安装 commit-msg 钩子（新克隆的仓库跑一�
 npx -y --package @deepseek-ai/dsh dsh plugin --profile desktop add <本目录绝对路径>
 ```
 
+没有 `dsh` CLI 时见 README「手动 link 安装」——**务必别漏掉插件目录里的
+`node_modules/@deepseek-ai/schemastery` peer 链接**，否则宿主半侧会 ERR_MODULE_NOT_FOUND。
+另外：桌面端不会因 profile 文件变化而热重载，装完要重启应用才会出现「外观」页。
+
 ## 硬约束（改代码前必须知道）
 
 1. **宿主半侧不可省**。两个理由：① 设置命名空间 = Loader 行 id，客户端插件无法自建，持久化必须由宿主侧 `Config`（`.volatile()`）提供；② `webserver/index-inject` 只有宿主侧能订阅，没有它刷新时字体会先闪一下。

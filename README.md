@@ -39,6 +39,23 @@ npx -y --package @deepseek-ai/dsh dsh plugin --profile desktop add D:\StudyWorks
 
 装完会把这行追加进 profile 的 `dsh.profile.bundles`。**如果设置里没有出现「外观」，重启一次 DSH**（首次挂载新行需要加载新的配置层）。
 
+### 手动 link 安装（无 dsh CLI 时，已实测）
+
+在 `$DSH_HOME/profiles/<profile>/` 下做三件事：
+
+1. `package.json`：`dependencies` 加 `"dsh-appearance": "link:<本目录绝对路径>"`，`dsh.profile.bundles` 数组追加 `"dsh-appearance"`；
+2. `node_modules/dsh-appearance` 建目录联接（junction / symlink）指向本目录；
+3. **在本目录里补一个 peer 链接**：`node_modules/@deepseek-ai/schemastery` → `<profile>/node_modules/@deepseek-ai/schemastery`。
+   少了第 3 步会踩坑：目录联接会让 Node 按**真实路径**（本仓库）向上找依赖，而 DSH 的运行时包在 profile 里，宿主半侧的 `import '@deepseek-ai/schemastery'` 会直接 ERR_MODULE_NOT_FOUND。
+
+校验（在 profile 目录里跑，解析链与真实 loader 一致）：
+
+```powershell
+node -e "import('dsh-appearance').then(m => console.log(m.name, typeof m.apply, Object.keys(m.Config({}))))"
+```
+
+回滚：删掉上面的依赖与 bundles 条目、删掉两个链接即可（安装前请备份 `package.json`）。
+
 到「设置 → 外观」即可使用。
 
 ## 开发
