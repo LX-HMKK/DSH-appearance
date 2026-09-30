@@ -5,6 +5,7 @@
   "scripts": {
     "test": "node tools/smoke-test.mjs dsh-appearance",
     "verify": "node tools/verify.mjs dsh-appearance",
-    "check": "npm run test && npm run verify"
+    "check": "npm run test && npm run verify",
+    "hooks:install": "node tools/install-hooks.mjs"
   }
 }
