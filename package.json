@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "More fonts, colors and sizes for DSH: a settings page that themes the Web client through the official --dsw-* tokens.",
+  "description": "给 DeepSeek Harness 加字体与配色设置：中英文与代码字体选择器，以及 One Dark Pro / Dracula / Nord / GitHub / Catppuccin 五套配色预设，全部走官方主题 token。",
   "license": "MIT",
   "icon": "./icon.svg",
   "main": "index.js",

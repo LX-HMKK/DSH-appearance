@@ -1,8 +1,13 @@
 # dsh-appearance
 
-给 DeepSeek Harness 桌面端 / Web 端加一组**外观设置**：更多字体、配色预设、强调色与文字色。
+给 DeepSeek Harness 桌面端 / Web 端加一组**外观设置**：字体、配色预设、强调色与文字色、正文字号。全部效果走官方主题 token（`--dsw-*` / `--shiki-*`），不修改 DSH 源码、不打包任何字体文件、零运行时依赖、零构建步骤。
 
-全部效果都走官方主题 token（`--dsw-*` / `--ds-*`），不注入补丁、不修改 DSH 源码、不打包任何字体或第三方依赖。
+和已有字体 / 主题插件的四点不同：
+
+1. **5 套官方色板的整套预设**：One Dark Pro（Darker 档）、Dracula、Nord、GitHub、Catppuccin；浅色一侧分别是 One Light / Alucard / Nord Light / GitHub Light / Latte。
+2. **每个预设覆盖 38 个主题 token**：底色、两级表面、四级文字、四档边框、品牌色、按钮、状态色、滚动条、代码块底 / 条幅 / 行内码、diff 增删，外加 shiki 的语法高亮变量——侧栏、菜单、状态色和代码块会一起换。
+3. **字体只列本机已安装的**（Chromium Local Font Access），中英文分两个框选，英文不会被中文字形接管。
+4. **有门槛的自动校验**：`npm run check` 核对每个 token 名是否真的存在于安装包里，并对 5 套预设 × 明暗两态逐组检查 WCAG 对比度（正文 7:1、次级 4.5:1、语法色 3:1），另有 51 项冒烟断言。
 
 ```
 仓库根 = 插件包本体（awesome-dsh-plugin 的 CI 只从根 / packages / plugins / apps 读 package.json）
