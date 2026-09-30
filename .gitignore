@@ -1,0 +1,11 @@
+# 调研用的一次性脚本与临时产物
+.recon/
+tools/.host-under-test.mjs
+*.log
+
+# 依赖与编辑器
+node_modules/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

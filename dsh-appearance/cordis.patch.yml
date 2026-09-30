@@ -1,0 +1,14 @@
+# ============================================================================
+# dsh-appearance 的组合包层（dsh.bundle.patch）
+# ----------------------------------------------------------------------------
+# 作用：向配置树插入一行插件。安装本包后，dsl 会把本包追加进 profile 的
+#       dsh.profile.bundles，本文件即成为该层，随 profile 启动生效。
+#
+# 重要：这一行的 id 同时是**设置命名空间**。浏览器半侧通过
+#       ctx.configForms.get('dsh-appearance') 读写本插件的 Config，
+#       用户改动会落到 profile 的 cordis.patch.yml 里（volatile 字段）。
+# ============================================================================
+- insert:
+    - id: dsh-appearance
+      name: 'dsh-appearance'
+      config: {}

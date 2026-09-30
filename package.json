@@ -1,0 +1,10 @@
+{
+  "name": "dsh-appearance-workspace",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node tools/smoke-test.mjs dsh-appearance",
+    "verify": "node tools/verify.mjs dsh-appearance",
+    "check": "npm run test && npm run verify"
+  }
+}
