@@ -60,20 +60,20 @@ window.__ModuleLoader__.load({
       { key: 'font.follow', family: '', stack: '', group: 'fontGroup.recommended' },
       { key: 'font.system', family: '', stack: UI_FALLBACK, group: 'fontGroup.recommended' },
       // 中文黑体
-      { key: 'font.noto', family: 'Noto Sans SC', group: 'fontGroup.chineseSans' },
-      { key: 'font.harmony', family: 'HarmonyOS Sans SC', group: 'fontGroup.chineseSans' },
-      { key: 'font.misans', family: 'MiSans', group: 'fontGroup.chineseSans' },
-      { key: 'font.puhuiti', family: 'Alibaba PuHuiTi 3.0', group: 'fontGroup.chineseSans' },
-      { key: 'font.pingfang', family: 'PingFang SC', group: 'fontGroup.chineseSans' },
-      { key: 'font.yahei', family: 'Microsoft YaHei', group: 'fontGroup.chineseSans' },
-      { key: 'font.sarasaGothic', family: 'Sarasa Gothic SC', group: 'fontGroup.chineseSans' },
+      { key: 'font.noto', family: 'Noto Sans SC', group: 'fontGroup.cjkSans', script: 'cjk' },
+      { key: 'font.harmony', family: 'HarmonyOS Sans SC', group: 'fontGroup.cjkSans', script: 'cjk' },
+      { key: 'font.misans', family: 'MiSans', group: 'fontGroup.cjkSans', script: 'cjk' },
+      { key: 'font.puhuiti', family: 'Alibaba PuHuiTi 3.0', group: 'fontGroup.cjkSans', script: 'cjk' },
+      { key: 'font.pingfang', family: 'PingFang SC', group: 'fontGroup.cjkSans', script: 'cjk' },
+      { key: 'font.yahei', family: 'Microsoft YaHei', group: 'fontGroup.cjkSans', script: 'cjk' },
+      { key: 'font.sarasaGothic', family: 'Sarasa Gothic SC', group: 'fontGroup.cjkSans', script: 'cjk' },
       // 中文宋楷
-      { key: 'font.notoSerif', family: 'Noto Serif SC', group: 'fontGroup.chineseSerif' },
-      { key: 'font.lxgw', family: 'LXGW WenKai', group: 'fontGroup.chineseSerif' },
-      { key: 'font.lxgwScreen', family: 'LXGW WenKai Screen', group: 'fontGroup.chineseSerif' },
-      { key: 'font.serif', family: 'Songti SC', group: 'fontGroup.chineseSerif' },
-      { key: 'font.simsun', family: 'SimSun', group: 'fontGroup.chineseSerif' },
-      { key: 'font.kaiti', family: 'Kaiti SC', group: 'fontGroup.chineseSerif' },
+      { key: 'font.notoSerif', family: 'Noto Serif SC', group: 'fontGroup.cjkSerif', script: 'cjk' },
+      { key: 'font.lxgw', family: 'LXGW WenKai', group: 'fontGroup.cjkSerif', script: 'cjk' },
+      { key: 'font.lxgwScreen', family: 'LXGW WenKai Screen', group: 'fontGroup.cjkSerif', script: 'cjk' },
+      { key: 'font.serif', family: 'Songti SC', group: 'fontGroup.cjkSerif', script: 'cjk' },
+      { key: 'font.simsun', family: 'SimSun', group: 'fontGroup.cjkSerif', script: 'cjk' },
+      { key: 'font.kaiti', family: 'Kaiti SC', group: 'fontGroup.cjkSerif', script: 'cjk' },
       // 西文无衬线
       { family: 'Inter', group: 'fontGroup.latinSans' },
       { family: 'Roboto', group: 'fontGroup.latinSans' },
@@ -101,9 +101,9 @@ window.__ModuleLoader__.load({
       { family: 'Crimson Pro', group: 'fontGroup.latinSerif' },
       { family: 'Noto Serif', group: 'fontGroup.latinSerif' },
       // 展示与圆体
-      { key: 'font.smiley', family: 'Smiley Sans', group: 'fontGroup.display' },
-      { key: 'font.rounded', family: 'Yuanti SC', group: 'fontGroup.display' },
-      { key: 'font.youyuan', family: 'YouYuan', group: 'fontGroup.display' },
+      { key: 'font.smiley', family: 'Smiley Sans', group: 'fontGroup.display', script: 'cjk' },
+      { key: 'font.rounded', family: 'Yuanti SC', group: 'fontGroup.display', script: 'cjk' },
+      { key: 'font.youyuan', family: 'YouYuan', group: 'fontGroup.display', script: 'cjk' },
       { family: 'Quicksand', group: 'fontGroup.display' },
       { family: 'Comfortaa', group: 'fontGroup.display' },
       { family: 'Varela Round', group: 'fontGroup.display' },
@@ -135,6 +135,15 @@ window.__ModuleLoader__.load({
       { family: 'SF Mono', group: 'fontGroup.mono' },
     ]
 
+    /**
+     * 猜一个家族是不是中文字体（用于把"本机已安装"再分成中/西文两组）。
+     * 名字里带汉字，或命中常见中文字体命名规律，就算中文。
+     */
+    function isCjkFamily(name) {
+      if (/[\u3400-\u4dbf\u4e00-\u9fff]/.test(name)) return true
+      return /(hei|song|kai|ming|yahei|pingfang|hiragino|source han|sarasa|wenkai|misans|harmonyos|puhuiti|simsun|simhei|fangsong|yuanti|youyuan|dengxian|jhenghei|meiryo|malgun|noto sans (sc|tc|jp|kr)|noto serif (sc|tc|jp|kr)|source han (sans|serif))/i.test(name)
+    }
+
     /** 把家族名安全地拼成字体栈（引号、逗号等一律清洗掉） */
     function stackOf(family, fallback) {
       const clean = String(family || '').replace(/["']/g, '').trim()
@@ -158,7 +167,8 @@ window.__ModuleLoader__.load({
           label: item.key ? t(item.key) : item.family,
           family: item.family,
           stack: item.stack !== undefined ? item.stack : stackOf(item.family, fallback),
-          group: t(item.group),
+          groupKey: item.group,
+          script: item.script || 'latin',
         }
       })
       const curatedFamilies = {}
@@ -168,12 +178,14 @@ window.__ModuleLoader__.load({
         if (added >= 300) break
         if (curatedFamilies[family.toLowerCase()]) continue
         added += 1
+        const cjk = isCjkFamily(family)
         options.push({
           id: 'local:' + family,
           label: family,
           family: family,
           stack: stackOf(family, fallback),
-          group: t('fontGroup.installed'),
+          groupKey: cjk ? 'fontGroup.localCjk' : 'fontGroup.localLatin',
+          script: cjk ? 'cjk' : 'latin',
         })
       }
       return options
@@ -331,13 +343,14 @@ window.__ModuleLoader__.load({
       applied: '已应用。',
       badJson: '文本无法解析，请检查格式。',
       'fontGroup.recommended': '推荐',
-      'fontGroup.chineseSans': '中文黑体',
-      'fontGroup.chineseSerif': '中文宋楷',
-      'fontGroup.latinSans': '西文无衬线',
-      'fontGroup.latinSerif': '西文衬线',
-      'fontGroup.display': '展示与圆体',
-      'fontGroup.mono': '等宽',
-      'fontGroup.installed': '本机已安装',
+      'fontGroup.cjkSans': '中文 · 黑体',
+      'fontGroup.cjkSerif': '中文 · 宋楷',
+      'fontGroup.latinSans': '英文 · 无衬线',
+      'fontGroup.latinSerif': '英文 · 衬线',
+      'fontGroup.display': '英文 · 展示与圆体',
+      'fontGroup.mono': '等宽 · 中英通用',
+      'fontGroup.localCjk': '本机已安装 · 中文',
+      'fontGroup.localLatin': '本机已安装 · 西文',
       'font.follow': '跟随 DSH 默认',
       'font.system': '系统无衬线',
       'font.noto': '思源黑体',
@@ -410,13 +423,14 @@ window.__ModuleLoader__.load({
       applied: 'Applied.',
       badJson: 'Could not parse that text.',
       'fontGroup.recommended': 'Recommended',
-      'fontGroup.chineseSans': 'Chinese sans',
-      'fontGroup.chineseSerif': 'Chinese serif',
-      'fontGroup.latinSans': 'Latin sans',
-      'fontGroup.latinSerif': 'Latin serif',
-      'fontGroup.display': 'Display & rounded',
-      'fontGroup.mono': 'Monospace',
-      'fontGroup.installed': 'Installed on this device',
+      'fontGroup.cjkSans': 'Chinese · Sans',
+      'fontGroup.cjkSerif': 'Chinese · Serif',
+      'fontGroup.latinSans': 'Latin · Sans',
+      'fontGroup.latinSerif': 'Latin · Serif',
+      'fontGroup.display': 'Latin · Display & rounded',
+      'fontGroup.mono': 'Monospace · CJK + Latin',
+      'fontGroup.localCjk': 'Installed · Chinese',
+      'fontGroup.localLatin': 'Installed · Latin',
       'font.follow': 'Follow DSH default',
       'font.system': 'System sans',
       'font.noto': 'Noto Sans SC',
@@ -481,12 +495,18 @@ window.__ModuleLoader__.load({
       pickerRoot: { position: 'relative', display: 'inline-block' },
       pickerTrigger: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, minWidth: 208, maxWidth: 268, padding: '6px 10px', background: 'var(--dsw-alias-bg-layer-1)', color: 'var(--dsw-alias-label-primary)', border: '1px solid var(--dsw-alias-border-l2)', borderRadius: 'var(--dsw-radius-sm, 8px)', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' },
       pickerCaret: { color: 'var(--dsw-alias-label-tertiary)', fontSize: 10, flex: '0 0 auto' },
-      pickerPanel: { position: 'absolute', top: 'calc(100% + 6px)', right: 0, zIndex: 40, minWidth: 268, maxWidth: 330, maxHeight: 336, overflowY: 'auto', padding: 6, background: 'var(--dsw-menu-surface-fill, var(--dsw-alias-bg-layer-2))', border: '1px solid var(--dsw-alias-border-l2)', borderRadius: 'var(--dsw-radius-md, 10px)', boxShadow: 'var(--dsw-elevation-prominent, 0 10px 30px rgba(0, 0, 0, .18))', outline: 'none' },
-      pickerSearch: { width: '100%', boxSizing: 'border-box', marginBottom: 6, padding: '6px 8px', background: 'var(--dsw-alias-bg-layer-1)', color: 'var(--dsw-alias-label-primary)', border: '1px solid var(--dsw-alias-border-l2)', borderRadius: 'var(--dsw-radius-sm, 8px)', fontSize: 13, fontFamily: 'inherit' },
-      pickerGroup: { padding: '8px 10px 4px', fontSize: 11, color: 'var(--dsw-alias-label-caption)' },
-      pickerItem: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, width: '100%', boxSizing: 'border-box', padding: '7px 10px', background: 'transparent', border: 'none', borderRadius: 'var(--dsw-radius-sm, 8px)', color: 'var(--dsw-alias-label-primary)', fontSize: 14, textAlign: 'left', cursor: 'pointer' },
+      // 面板用不透明的 layer-2：宿主的 --dsw-menu-surface-fill 是半透明材质，
+      // 必须配 --dsw-menu-backdrop-filter 才好看，这里干脆用实色，长时间看不累。
+      pickerPanel: { position: 'absolute', top: 'calc(100% + 6px)', right: 0, zIndex: 40, display: 'flex', flexDirection: 'column', minWidth: 330, maxWidth: 396, padding: 6, background: 'var(--dsw-alias-bg-layer-2, #1c1c1e)', border: '1px solid var(--dsw-alias-border-l3)', borderRadius: 'var(--dsw-radius-md, 10px)', boxShadow: '0 14px 36px rgba(0, 0, 0, .26), 0 3px 8px rgba(0, 0, 0, .14)', outline: 'none' },
+      pickerSearch: { width: '100%', boxSizing: 'border-box', marginBottom: 6, padding: '7px 9px', background: 'var(--dsw-alias-bg-layer-1)', color: 'var(--dsw-alias-label-primary)', border: '1px solid var(--dsw-alias-border-l2)', borderRadius: 'var(--dsw-radius-sm, 8px)', fontSize: 13, fontFamily: 'inherit' },
+      pickerList: { overflowY: 'auto', maxHeight: 296, display: 'flex', flexDirection: 'column' },
+      pickerGroup: { position: 'sticky', top: 0, zIndex: 1, padding: '9px 4px 5px', background: 'var(--dsw-alias-bg-layer-2, #1c1c1e)', borderTop: '1px solid var(--dsw-alias-border-l1)', fontSize: 11, fontWeight: 600, color: 'var(--dsw-alias-label-tertiary)' },
+      pickerItem: { display: 'flex', alignItems: 'center', gap: 10, width: '100%', boxSizing: 'border-box', padding: '7px 10px', background: 'transparent', border: 'none', borderRadius: 'var(--dsw-radius-sm, 8px)', color: 'var(--dsw-alias-label-primary)', fontSize: 14, textAlign: 'left', cursor: 'pointer' },
       pickerItemOn: { background: 'var(--dsw-alias-interactive-bg-hover)' },
-      pickerCheck: { color: 'var(--dsw-alias-state-business-primary)', fontSize: 13, flex: '0 0 auto' },
+      pickerItemSelected: { background: 'var(--dsw-alias-interactive-bg-active)' },
+      pickerName: { flex: '1 1 auto', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+      pickerSample: { flex: '0 0 auto', fontSize: 12, color: 'var(--dsw-alias-label-caption)', whiteSpace: 'nowrap' },
+      pickerCheck: { flex: '0 0 auto', color: 'var(--dsw-alias-state-business-primary)', fontSize: 13, width: 12, textAlign: 'right' },
       pickerEmpty: { padding: 10, fontSize: 12, color: 'var(--dsw-alias-label-tertiary)' },
     }
 
@@ -571,25 +591,29 @@ window.__ModuleLoader__.load({
                   style: S.pickerSearch,
                 })
               : null,
-            visible.length === 0 ? h('div', { style: S.pickerEmpty }, t('font.empty')) : null,
-            visible.map(function (option, index) {
-              const selected = option.stack === props.value
-              const header = index === 0 || visible[index - 1].group !== option.group
-                ? h('div', { key: 'group:' + option.group + ':' + index, style: S.pickerGroup }, option.group)
-                : null
-              return h('div', { key: option.id },
-                header,
-                h('button', {
-                  type: 'button',
-                  role: 'option',
-                  'aria-selected': selected ? 'true' : 'false',
-                  onMouseEnter: function () { setActive(index) },
-                  onClick: function () { choose(option) },
-                  style: Object.assign({}, S.pickerItem, index === active ? S.pickerItemOn : null),
-                },
-                  h('span', { style: { fontFamily: 'inherit', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, option.label),
-                  selected ? h('span', { style: S.pickerCheck }, '\u2713') : null))
-            }))
+            h('div', { style: S.pickerList },
+              visible.length === 0 ? h('div', { style: S.pickerEmpty }, t('font.empty')) : null,
+              visible.map(function (option, index) {
+                const selected = option.stack === props.value
+                const preview = option.stack || 'inherit'
+                const header = index === 0 || visible[index - 1].groupKey !== option.groupKey
+                  ? h('div', { key: 'g:' + option.groupKey + ':' + index, style: S.pickerGroup }, t(option.groupKey))
+                  : null
+                return h('div', { key: option.id },
+                  header,
+                  h('button', {
+                    type: 'button',
+                    role: 'option',
+                    'aria-selected': selected ? 'true' : 'false',
+                    onMouseEnter: function () { setActive(index) },
+                    onClick: function () { choose(option) },
+                    style: Object.assign({}, S.pickerItem, selected ? S.pickerItemSelected : null, index === active ? S.pickerItemOn : null),
+                  },
+                    h('span', { style: Object.assign({}, S.pickerName, { fontFamily: preview }) }, option.label),
+                    h('span', { style: Object.assign({}, S.pickerSample, { fontFamily: preview }) }, option.script === 'cjk' ? '\u6c38\u548c\u4e5d\u5e74' : 'Aa Bb 123'),
+                    h('span', { style: S.pickerCheck }, selected ? '\u2713' : '')))
+              })
+            ))
           : null)
     }
 

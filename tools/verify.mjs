@@ -84,6 +84,15 @@ console.log('FONT FAMILIES CURATED: ' + curated.length + (duplicates.length ? ' 
 if (curated.length < 40) console.log('  WARN 精选字体少于 40 个');
 if (duplicates.length) console.log('  FAIL 字体目录有重复条目');
 
+/* ---- 5. 外观细节的回归护栏 ---- */
+const panelLine = (client.match(/pickerPanel: \{[^\n]*/) || [''])[0];
+console.log('PICKER PANEL OPAQUE: ' + (!panelLine.includes('dsw-menu-surface-fill') ? 'yes' : 'NO'));
+if (panelLine.includes('dsw-menu-surface-fill')) console.log('  FAIL 下拉面板不得使用半透明菜单材质（缺 backdrop blur 会透出背景）');
+const groups = ['fontGroup.cjkSans', 'fontGroup.cjkSerif', 'fontGroup.latinSans', 'fontGroup.latinSerif', 'fontGroup.mono', 'fontGroup.localCjk', 'fontGroup.localLatin'];
+const missingGroups = groups.filter((key) => !client.includes("'" + key + "'"));
+console.log('FONT GROUPS: ' + (missingGroups.length === 0 ? 'cjk/latin/local split OK' : 'MISSING ' + missingGroups.join(', ')));
+if (missingGroups.length) console.log('  FAIL 中英文字体分组缺失');
+
 console.log('PRESETS CHECKED: ' + presets.map((p) => p.id).join(', '));
 console.log('CONTRAST FAILURES: ' + failures);
 console.log('WORST RATIO: ' + worst.value.toFixed(2) + '  (' + worst.label + ')');
