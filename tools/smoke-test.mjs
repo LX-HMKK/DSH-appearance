@@ -210,7 +210,7 @@ await scope.set('preset', 'onedark');
 last = calls.overrides[calls.overrides.length - 1];
 const od = last.tokens;
 ok('覆盖 42 个 token（8 基础 + 30 外围与语法 + 4 static 填充）', Object.keys(od).length === 42, String(Object.keys(od).length));
-ok('卡片头/悬停的 static 填充进覆盖层（另一侧保持 DSH 原值）', !!od['--dsw-static-neutral-850'] && od['--dsw-static-neutral-850'].dark === '#1E2227' && od['--dsw-static-neutral-850'].light === '#212123' && od['--dsw-static-neutral-50'].light === '#FAFAFA' && od['--dsw-static-neutral-50'].dark === '#FAFAFA', JSON.stringify([od['--dsw-static-neutral-850'], od['--dsw-static-neutral-50']]));
+ok('卡片头/悬停的 static 填充进覆盖层（另一侧保持 DSH 原值）', !!od['--dsw-static-neutral-850'] && od['--dsw-static-neutral-850'].dark === '#1B1D23' && od['--dsw-static-neutral-850'].light === '#212123' && od['--dsw-static-neutral-50'].light === '#FAFAFA' && od['--dsw-static-neutral-50'].dark === '#FAFAFA', JSON.stringify([od['--dsw-static-neutral-850'], od['--dsw-static-neutral-50']]));
 ok('语法高亮关键字色进了覆盖层', !!od['--shiki-token-keyword'] && od['--shiki-token-keyword'].dark === '#C678DD', JSON.stringify(od['--shiki-token-keyword']));
 ok('语法高亮是明暗成对的', !!od['--shiki-token-comment'] && od['--shiki-token-comment'].light === '#696C77' && od['--shiki-token-comment'].dark === '#7F848E', JSON.stringify(od['--shiki-token-comment']));
 ok('代码块底色跟随预设', !!od['--dsw-alias-markdown-code-block'] && od['--dsw-alias-markdown-code-block'].dark === '#23272E', JSON.stringify(od['--dsw-alias-markdown-code-block']));

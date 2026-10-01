@@ -404,9 +404,10 @@ window.__ModuleLoader__.load({
      * 只有两处偏离原版，都是为了可读性，且只动"当文字用"的那几档：
      * ① 主题没公布第四级灰阶时按自己的灰阶插值（标记见 tools/verify.mjs 的对比度检查）；
      * ② 浅色档里对比度不足的原版彩色会压暗到达标（例如 Latte 的粉彩）。
-     * 代码块底色取主题的**面板/控件表面**（VS Code 里 markdown 代码块就是这一层：One Dark Pro
-     * 的 editorWidget #1E2227、Dracula 的 #21222C、Catppuccin 的 mantle #181825、Nord 的 nord1），
-     * 所以代码块和对话底色一定分得开；代码块条幅再取浅一档。
+     * 层级不是"填满调色板"，而是照各主题自己的关系排：**最暗的一档给对话底，面板/代码块
+     * 取编辑器色，越往前的表面越亮**。One Dark Pro 用 peekViewEditor #1B1D23 打底、编辑器色
+     * #23272E 当面板（落差 8~11 级，暗屏下也看得出边界）；Dracula 用官方 tabs 色 #191A21 打底、
+     * #21222C 当面板；Nord / GitHub / Catppuccin 的主色本来就是最暗的，直接用它打底。
      *
      * 40 个字段 -> 42 个 token 的展开规则：色板 -> 角色 -> token，全部是显式字面量，
      * 方便 tools/verify.mjs 逐条核对（改色请跑 npm run check）。
@@ -426,14 +427,14 @@ window.__ModuleLoader__.load({
           synParameter: '#383A42', synPunctuation: '#383A42', synLink: '#4078F2', fill: '#FAFAFA', fillHover: '#E5E5E6'
         },
         dark: {
-          accent: '#61AFEF', link: '#61AFEF', base: '#1E2227', layer1: '#23272E', layer2: '#2C313A',
+          accent: '#61AFEF', link: '#61AFEF', base: '#1B1D23', layer1: '#23272E', layer2: '#2C313A',
           layer3: '#323842', ink: '#ABB2BF', secondary: '#9DA5B4', border: '#3E4452', labelTertiary: '#8B94A3',
-          labelCaption: '#7F848E', borderL1: '#2C313A', borderL3: '#4D5361', borderL4: '#5D6371', brand: '#61AFEF',
+          labelCaption: '#7F848E', borderL1: '#2B2F38', borderL3: '#4D5361', borderL4: '#5D6371', brand: '#61AFEF',
           buttonHover: '#7BC0F5', elevated: '#2C313A', success: '#98C379', warn: '#E5C07B', error: '#E06C75',
           codeBlock: '#23272E', codeBanner: '#2C313A', inlineCode: '#23272E', diffAdded: '#98C3792E', diffDeleted: '#E06C752E',
           scrollbar: '#4E545F', scrollbarHover: '#656B77', synForeground: '#ABB2BF', synBackground: '#23272E', synComment: '#7F848E',
           synString: '#98C379', synStringExpr: '#ABB2BF', synKeyword: '#C678DD', synConstant: '#D19A66', synFunction: '#61AFEF',
-          synParameter: '#ABB2BF', synPunctuation: '#ABB2BF', synLink: '#61AFEF', fill: '#1E2227', fillHover: '#2C313A'
+          synParameter: '#ABB2BF', synPunctuation: '#ABB2BF', synLink: '#61AFEF', fill: '#1B1D23', fillHover: '#2C313A'
         },
       },
       {
@@ -449,14 +450,14 @@ window.__ModuleLoader__.load({
           synParameter: '#1F1F1F', synPunctuation: '#1F1F1F', synLink: '#036A96', fill: '#FFFBEB', fillHover: '#E7E1CC'
         },
         dark: {
-          accent: '#BD93F9', link: '#8BE9FD', base: '#21222C', layer1: '#282A36', layer2: '#343746',
-          layer3: '#44475A', ink: '#F8F8F2', secondary: '#C3C7D1', border: '#44475A', labelTertiary: '#9EA3B8',
-          labelCaption: '#8A8FB0', borderL1: '#313341', borderL3: '#5D606F', borderL4: '#767985', brand: '#BD93F9',
-          buttonHover: '#CBA6FB', elevated: '#343746', success: '#50FA7B', warn: '#F1FA8C', error: '#FF5555',
+          accent: '#BD93F9', link: '#8BE9FD', base: '#191A21', layer1: '#21222C', layer2: '#282A36',
+          layer3: '#343746', ink: '#F8F8F2', secondary: '#C3C7D1', border: '#44475A', labelTertiary: '#9EA3B8',
+          labelCaption: '#8A8FB0', borderL1: '#2C2E3B', borderL3: '#5D606F', borderL4: '#767985', brand: '#BD93F9',
+          buttonHover: '#CBA6FB', elevated: '#282A36', success: '#50FA7B', warn: '#F1FA8C', error: '#FF5555',
           codeBlock: '#282A36', codeBanner: '#343746', inlineCode: '#282A36', diffAdded: '#50FA7B2E', diffDeleted: '#FF55552E',
-          scrollbar: '#5F6270', scrollbarHover: '#7C7F8C', synForeground: '#F8F8F2', synBackground: '#282A36', synComment: '#7B87B8',
+          scrollbar: '#575965', scrollbarHover: '#767984', synForeground: '#F8F8F2', synBackground: '#282A36', synComment: '#7B87B8',
           synString: '#F1FA8C', synStringExpr: '#F8F8F2', synKeyword: '#FF79C6', synConstant: '#BD93F9', synFunction: '#50FA7B',
-          synParameter: '#F8F8F2', synPunctuation: '#F8F8F2', synLink: '#8BE9FD', fill: '#21222C', fillHover: '#343746'
+          synParameter: '#F8F8F2', synPunctuation: '#F8F8F2', synLink: '#8BE9FD', fill: '#191A21', fillHover: '#282A36'
         },
       },
       {
