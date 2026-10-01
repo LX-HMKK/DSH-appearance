@@ -212,7 +212,7 @@ const od = last.tokens;
 ok('覆盖 38 个 token（8 基础 + 30 外围与语法）', Object.keys(od).length === 38, String(Object.keys(od).length));
 ok('语法高亮关键字色进了覆盖层', !!od['--shiki-token-keyword'] && od['--shiki-token-keyword'].dark === '#C678DD', JSON.stringify(od['--shiki-token-keyword']));
 ok('语法高亮是明暗成对的', !!od['--shiki-token-comment'] && od['--shiki-token-comment'].light === '#696C77' && od['--shiki-token-comment'].dark === '#7F848E', JSON.stringify(od['--shiki-token-comment']));
-ok('代码块底色跟随预设', !!od['--dsw-alias-markdown-code-block'] && od['--dsw-alias-markdown-code-block'].dark === '#1E2227', JSON.stringify(od['--dsw-alias-markdown-code-block']));
+ok('代码块底色跟随预设', !!od['--dsw-alias-markdown-code-block'] && od['--dsw-alias-markdown-code-block'].dark === '#23272E', JSON.stringify(od['--dsw-alias-markdown-code-block']));
 ok('外围 token 也进了覆盖层', !!od['--dsw-alias-label-tertiary'] && !!od['--dsw-alias-bg-layer-3'] && !!od['--dsw-alias-brand-primary']);
 ok('只有 One Dark Pro 覆盖外围（老预设仍是 8 个）', (await (async () => { await scope.set('preset', 'default'); return Object.keys(calls.overrides[calls.overrides.length - 1].tokens).length; })()) === 0);
 

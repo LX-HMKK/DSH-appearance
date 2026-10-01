@@ -413,12 +413,12 @@ window.__ModuleLoader__.load({
           synParameter: '#383A42', synPunctuation: '#383A42', synLink: '#4078F2'
         },
         dark: {
-          accent: '#61AFEF', link: '#61AFEF', base: '#23272E', layer1: '#2C313A', layer2: '#323842',
-          layer3: '#3E4451', ink: '#ABB2BF', secondary: '#9DA5B4', border: '#3E4452', labelTertiary: '#8B94A3',
-          labelCaption: '#7F848E', borderL1: '#2F343E', borderL3: '#4D5361', borderL4: '#5D6371', brand: '#61AFEF',
-          buttonHover: '#7BC0F5', elevated: '#323842', success: '#98C379', warn: '#E5C07B', error: '#E06C75',
-          codeBlock: '#1E2227', codeBanner: '#23272E', inlineCode: '#1E2227', diffAdded: '#98C3792E', diffDeleted: '#E06C752E',
-          scrollbar: '#525964', scrollbarHover: '#686F7B', synForeground: '#ABB2BF', synBackground: '#1E2227', synComment: '#7F848E',
+          accent: '#61AFEF', link: '#61AFEF', base: '#1E2227', layer1: '#23272E', layer2: '#2C313A',
+          layer3: '#323842', ink: '#ABB2BF', secondary: '#9DA5B4', border: '#3E4452', labelTertiary: '#8B94A3',
+          labelCaption: '#7F848E', borderL1: '#2C313A', borderL3: '#4D5361', borderL4: '#5D6371', brand: '#61AFEF',
+          buttonHover: '#7BC0F5', elevated: '#2C313A', success: '#98C379', warn: '#E5C07B', error: '#E06C75',
+          codeBlock: '#23272E', codeBanner: '#2C313A', inlineCode: '#23272E', diffAdded: '#98C3792E', diffDeleted: '#E06C752E',
+          scrollbar: '#4E545F', scrollbarHover: '#656B77', synForeground: '#ABB2BF', synBackground: '#23272E', synComment: '#7F848E',
           synString: '#98C379', synStringExpr: '#ABB2BF', synKeyword: '#C678DD', synConstant: '#D19A66', synFunction: '#61AFEF',
           synParameter: '#ABB2BF', synPunctuation: '#ABB2BF', synLink: '#61AFEF'
         },
@@ -436,12 +436,12 @@ window.__ModuleLoader__.load({
           synParameter: '#1F1F1F', synPunctuation: '#1F1F1F', synLink: '#036A96'
         },
         dark: {
-          accent: '#BD93F9', link: '#8BE9FD', base: '#282A36', layer1: '#343746', layer2: '#44475A',
-          layer3: '#4D5168', ink: '#F8F8F2', secondary: '#C3C7D1', border: '#44475A', labelTertiary: '#9EA3B8',
-          labelCaption: '#8A8FB0', borderL1: '#353746', borderL3: '#5D606F', borderL4: '#767985', brand: '#BD93F9',
-          buttonHover: '#CBA6FB', elevated: '#44475A', success: '#50FA7B', warn: '#F1FA8C', error: '#FF5555',
-          codeBlock: '#21222C', codeBanner: '#282A36', inlineCode: '#21222C', diffAdded: '#50FA7B2E', diffDeleted: '#FF55552E',
-          scrollbar: '#6A6D7E', scrollbarHover: '#848796', synForeground: '#F8F8F2', synBackground: '#21222C', synComment: '#7B87B8',
+          accent: '#BD93F9', link: '#8BE9FD', base: '#21222C', layer1: '#282A36', layer2: '#343746',
+          layer3: '#44475A', ink: '#F8F8F2', secondary: '#C3C7D1', border: '#44475A', labelTertiary: '#9EA3B8',
+          labelCaption: '#8A8FB0', borderL1: '#313341', borderL3: '#5D606F', borderL4: '#767985', brand: '#BD93F9',
+          buttonHover: '#CBA6FB', elevated: '#343746', success: '#50FA7B', warn: '#F1FA8C', error: '#FF5555',
+          codeBlock: '#282A36', codeBanner: '#343746', inlineCode: '#282A36', diffAdded: '#50FA7B2E', diffDeleted: '#FF55552E',
+          scrollbar: '#5F6270', scrollbarHover: '#7C7F8C', synForeground: '#F8F8F2', synBackground: '#282A36', synComment: '#7B87B8',
           synString: '#F1FA8C', synStringExpr: '#F8F8F2', synKeyword: '#FF79C6', synConstant: '#BD93F9', synFunction: '#50FA7B',
           synParameter: '#F8F8F2', synPunctuation: '#F8F8F2', synLink: '#8BE9FD'
         },
