@@ -9,7 +9,7 @@
   "main": "index.js",
   "meta": {
     "title": "Appearance+ / 外观增强",
-    "description": "更多字体、配色与字号：系统字体栈、配色预设、强调色与文字色，全部走官方 --dsw-* token。"
+    "description": "更多字体、配色与字号：系统字体栈、配色预设、强调色与文字色，全部走官方 --dsw-* token。需要 DSH 0.2.0-rc.2 或更新。"
   },
   "scripts": {
     "test": "node tools/smoke-test.mjs .",

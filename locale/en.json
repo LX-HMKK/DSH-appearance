@@ -1,4 +1,4 @@
 {
   "title": "Appearance+",
-  "description": "A lightweight font and theme plugin: separate Latin/Chinese font pickers, five official palettes, no bundled fonts or dependencies."
+  "description": "A lightweight font and theme plugin: separate Latin/Chinese font pickers, five official palettes, no bundled fonts or dependencies. Requires DSH 0.2.0-rc.2 or newer."
 }
