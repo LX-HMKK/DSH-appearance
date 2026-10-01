@@ -59,7 +59,7 @@ npx -y --package @deepseek-ai/dsh dsh plugin --profile desktop add <本仓库绝
 6. **字体与颜色统一走 `ctx.theme.overrideTokens(source, { token: { light, dark } })`**：值必须是成对字符串（传裸字符串会抛错）；同 source 再次调用即整层替换。不要去和 ui-theme 的样式表抢级联。
 7. **字号只走 `ctx.theme.setFontSize(10..22)`**：`--dsh-content-font-size` 由 ui-layout 在每次主题快照时重写，自己设会被冲掉，且组件高度按该轴阶梯推导。
 8. **首屏样式的选择器用 `html:root`**（特异度 0,1,1），不要用 `:root`（0,1,0）：注入行位于 `<head>` 最前面，只有特异度更高才能在 base.css 之后继续生效。
-9. **`peerDependencies` 只声明 `@deepseek-ai/cordis`**：DSH 会在安装前校验每一个已声明的 `@deepseek-ai/dsh-*` 版本范围，写多了会直接装不上。
+9. **宿主要求用 `engines.dsh` 声明，不要塞进 `peerDependencies`**。两条机制完全不同：`engines.dsh` 是官方字段（`@deepseek-ai/dsh-package-manifest`），**声明式**——当前安装器与加载器都不强制，只用于告诉人和市场"兼容哪些 DSH"；而 `peerDependencies` 里的 `@deepseek-ai/dsh` / `@deepseek-ai/dsh-*` 是**强制准入**——profile 导入前会拿 `getDshRuntimeVersion()` 逐个比对（`includePrerelease: true`），不匹配就拒绝加载那一行（变 `disabled`，组合包进 `skippedBundles`），npm 侧还会因预发布范围被静默排除而 ERESOLVE。所以 `peerDependencies` 只留 `@deepseek-ai/cordis`（宿主内置 4.0.4，`~4.0.4` 命中），DSH 版本要求写进 `engines.dsh`；改完必须跑 `npm run verify`——它会读安装包里 `@deepseek-ai/dsh` 的真实版本核对这个范围。
 10. **配色预设必须用主题官方色值**，不要凭感觉配：五套预设分别取自 One Dark Pro（Darker 档，色值在 `~/.vscode/extensions/zhuangtongfa.material-theme*/themes/OneDark-Pro-darker.json`）、Dracula / Alucard、Nord、GitHub Primer、Catppuccin Mocha / Latte。只有主题未公布的灰阶才允许按自身灰阶插值，浅色档对比度不足的原版彩色可以压暗，二者都要在 README 里说明；加主题或改色用 `node tools/gen-presets.cjs` 生成字面量（别手抄 40 个字段），改完必须跑 `npm run check`（对比度门槛在 `tools/verify.mjs`）。
 
 ## 提交规范

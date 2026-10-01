@@ -45,6 +45,8 @@
 
 插件是一个**组合包（bundle）**：带 `dsh.bundle.patch` 的 npm 包。
 
+要求 **DSH 0.2.0-rc.2 或更新**（`package.json` 的 `engines.dsh`）。这个字段是**声明式**的：宿主不会据此拒绝加载，它的用途是说明兼容范围。token 名会随宿主版本变化，换 DSH 版本后跑一次 `npm run verify` 即可核对。
+
 **A. 界面安装（推荐，免命令行）** —— DSH 左侧「Plugins」→「添加插件」，填本仓库的绝对路径（仓库根就是插件包）：
 
 ```

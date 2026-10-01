@@ -123,7 +123,52 @@ for (const name of ['UI_FONTS', 'CODE_FONTS']) {
 console.log('FONT FAMILIES CURATED: ' + curatedTotal + (duplicateTotal ? '' : '  (each list has no duplicates)'));
 if (curatedTotal < 40) console.log('  WARN 精选字体少于 40 个');
 
-/* ---- 5. 外观细节的回归护栏 ---- */
+/* ---- 5. 宿主要求（engines.dsh）必须覆盖实测宿主版本 ---- */
+const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
+const hostVersion = JSON.parse(read('dsh/node_modules/@deepseek-ai/dsh/package.json')).version;
+const declared = pkg.engines && pkg.engines.dsh;
+/* 只认本仓库实际会写的 '>=x.y.z[-pre]' 与可选 ' <x.y.z[-pre]' 上界：换别的写法直接报错，
+   免得写了个解析不了的范围还被当成"通过"。语义与 DSH 的 evaluatePluginCompatibility 一致
+   （includePrerelease: true，预发布参与比较）。 */
+const parseVer = (v) => {
+  const m = /^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?$/.exec(String(v).trim());
+  return m ? { n: [+m[1], +m[2], +m[3]], pre: m[4] ? m[4].split('.') : [] } : null;
+};
+const cmpPre = (a, b) => {
+  for (let i = 0; i < Math.max(a.length, b.length); i++) {
+    const x = a[i], y = b[i];
+    if (x === undefined) return -1;
+    if (y === undefined) return 1;
+    if (x === y) continue;
+    const xn = /^\d+$/.test(x), yn = /^\d+$/.test(y);
+    if (xn && yn) return +x < +y ? -1 : 1;
+    if (xn !== yn) return xn ? -1 : 1;
+    return x < y ? -1 : 1;
+  }
+  return 0;
+};
+const cmpVer = (a, b) => {
+  for (let i = 0; i < 3; i++) if (a.n[i] !== b.n[i]) return a.n[i] < b.n[i] ? -1 : 1;
+  if (!a.pre.length && !b.pre.length) return 0;
+  if (!a.pre.length) return 1;
+  if (!b.pre.length) return -1;
+  return cmpPre(a.pre, b.pre);
+};
+const hostVer = parseVer(hostVersion);
+const bounds = String(declared || '').split(/\s+/).filter(Boolean);
+const supported = hostVer && bounds.length > 0 && bounds.every((c) => /^(>=|<)\d+\.\d+\.\d+/.test(c));
+const hostOk = supported && bounds.every((c) => {
+  const v = parseVer(c.slice(c.startsWith('>=') ? 2 : 1));
+  const d = v && cmpVer(hostVer, v);
+  return c.startsWith('>=') ? d >= 0 : d < 0;
+});
+console.log('ENGINES.DSH: ' + (declared || '(未声明)') + ' vs host ' + hostVersion + ' -> ' + (hostOk ? 'OK' : 'FAIL'));
+if (!hostOk) {
+  failures++;
+  console.log('  FAIL package.json 的 engines.dsh 缺失、写法不支持，或没覆盖实测宿主 ' + hostVersion);
+}
+
+/* ---- 6. 外观细节的回归护栏 ---- */
 const panelLine = (client.match(/pickerPanel: \{[^\n]*/) || [''])[0];
 console.log('PICKER PANEL OPAQUE: ' + (!panelLine.includes('dsw-menu-surface-fill') ? 'yes' : 'NO'));
 if (panelLine.includes('dsw-menu-surface-fill')) console.log('  FAIL 下拉面板不得使用半透明菜单材质（缺 backdrop blur 会透出背景）');
