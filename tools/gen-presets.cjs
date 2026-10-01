@@ -96,6 +96,7 @@ const THEMES = [
 ];
 const expand = (p, dark) => ({
   accent: p.accent, link: p.link, base: p.bg, layer1: p.bg1, layer2: p.bg2, layer3: p.bg3,
+  fill: p.bg, fillHover: p.bg2,
   ink: p.fg, secondary: p.fg2, border: p.border,
   labelTertiary: p.fg3 || mix(p.fg2, p.fg4, 0.5), labelCaption: p.fg4,
   borderL1: mix(p.border, p.bg, 0.55), borderL3: mix(p.border, p.fg, 0.14), borderL4: mix(p.border, p.fg, 0.28),
@@ -108,7 +109,7 @@ const expand = (p, dark) => ({
   synStringExpr: p.syn.strExpr || p.syn.string, synKeyword: p.syn.keyword, synConstant: p.syn.constant,
   synFunction: p.syn.fn, synParameter: p.fg, synPunctuation: p.syn.punct || p.fg, synLink: p.link,
 });
-const ORDER = ['accent','link','base','layer1','layer2','layer3','ink','secondary','border','labelTertiary','labelCaption','borderL1','borderL3','borderL4','brand','buttonHover','elevated','success','warn','error','codeBlock','codeBanner','inlineCode','diffAdded','diffDeleted','scrollbar','scrollbarHover','synForeground','synBackground','synComment','synString','synStringExpr','synKeyword','synConstant','synFunction','synParameter','synPunctuation','synLink'];
+const ORDER = ['accent','link','base','layer1','layer2','layer3','ink','secondary','border','labelTertiary','labelCaption','borderL1','borderL3','borderL4','brand','buttonHover','elevated','success','warn','error','codeBlock','codeBanner','inlineCode','diffAdded','diffDeleted','scrollbar','scrollbarHover','synForeground','synBackground','synComment','synString','synStringExpr','synKeyword','synConstant','synFunction','synParameter','synPunctuation','synLink','fill','fillHover'];
 let failures = 0;
 for (const t of THEMES) {
   for (const mode of ['light', 'dark']) {

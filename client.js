@@ -56,6 +56,19 @@ window.__ModuleLoader__.load({
      * 最后 11 个是 shiki 的语法高亮变量（ui-theme 的 shiki 表把 --shiki-token-*
      * 指向语义色）：直接改这些变量＝只动代码块里的 token 颜色，不牵连别的组件。
      */
+    /**
+     * 第三批：绕开 alias 层的组件填充。deliverables / plan / schedule 这类卡片把「卡片头 /
+     * 悬停」的填充写成 --dsw-static-neutral-*，而且是**元素级**声明——会盖过我们写在 body
+     * 上的覆盖层，只能改 static 本身。每个 token 只有一侧跟主题走，另一侧保持 DSH 原值，
+     * 所以另一个明暗档完全不受影响。
+     */
+    const STATIC_FILLS = {
+      '--dsw-static-neutral-850': { mode: 'dark', field: 'fill', other: '#212123' },
+      '--dsw-static-neutral-800': { mode: 'dark', field: 'fillHover', other: '#292929' },
+      '--dsw-static-neutral-50': { mode: 'light', field: 'fill', other: '#FAFAFA' },
+      '--dsw-static-neutral-100': { mode: 'light', field: 'fillHover', other: '#F5F5F5' },
+    }
+
     const TOKEN_MORE = {
       labelTertiary: '--dsw-alias-label-tertiary',
       labelCaption: '--dsw-alias-label-caption',
@@ -395,7 +408,7 @@ window.__ModuleLoader__.load({
      * 的 editorWidget #1E2227、Dracula 的 #21222C、Catppuccin 的 mantle #181825、Nord 的 nord1），
      * 所以代码块和对话底色一定分得开；代码块条幅再取浅一档。
      *
-     * 38 个 token 的展开规则：色板 -> 角色 -> token，全部字段都是显式字面量，
+     * 40 个字段 -> 42 个 token 的展开规则：色板 -> 角色 -> token，全部是显式字面量，
      * 方便 tools/verify.mjs 逐条核对（改色请跑 npm run check）。
      */
     const PRESETS = [
@@ -410,7 +423,7 @@ window.__ModuleLoader__.load({
           codeBlock: '#F0F0F1', codeBanner: '#E5E5E6', inlineCode: '#F0F0F1', diffAdded: '#4A9A4926', diffDeleted: '#E4564926',
           scrollbar: '#C0C1C5', scrollbarHover: '#A7A9AF', synForeground: '#383A42', synBackground: '#F0F0F1', synComment: '#696C77',
           synString: '#4A9A49', synStringExpr: '#4A9A49', synKeyword: '#A626A4', synConstant: '#986801', synFunction: '#4078F2',
-          synParameter: '#383A42', synPunctuation: '#383A42', synLink: '#4078F2'
+          synParameter: '#383A42', synPunctuation: '#383A42', synLink: '#4078F2', fill: '#FAFAFA', fillHover: '#E5E5E6'
         },
         dark: {
           accent: '#61AFEF', link: '#61AFEF', base: '#1E2227', layer1: '#23272E', layer2: '#2C313A',
@@ -420,7 +433,7 @@ window.__ModuleLoader__.load({
           codeBlock: '#23272E', codeBanner: '#2C313A', inlineCode: '#23272E', diffAdded: '#98C3792E', diffDeleted: '#E06C752E',
           scrollbar: '#4E545F', scrollbarHover: '#656B77', synForeground: '#ABB2BF', synBackground: '#23272E', synComment: '#7F848E',
           synString: '#98C379', synStringExpr: '#ABB2BF', synKeyword: '#C678DD', synConstant: '#D19A66', synFunction: '#61AFEF',
-          synParameter: '#ABB2BF', synPunctuation: '#ABB2BF', synLink: '#61AFEF'
+          synParameter: '#ABB2BF', synPunctuation: '#ABB2BF', synLink: '#61AFEF', fill: '#1E2227', fillHover: '#2C313A'
         },
       },
       {
@@ -433,7 +446,7 @@ window.__ModuleLoader__.load({
           codeBlock: '#F4EFDC', codeBanner: '#E7E1CC', inlineCode: '#F4EFDC', diffAdded: '#14710A26', diffDeleted: '#CB3A2A26',
           scrollbar: '#C2BCA5', scrollbarHover: '#AAA48C', synForeground: '#1F1F1F', synBackground: '#F4EFDC', synComment: '#7C7559',
           synString: '#846E15', synStringExpr: '#846E15', synKeyword: '#A3144D', synConstant: '#A34D14', synFunction: '#14710A',
-          synParameter: '#1F1F1F', synPunctuation: '#1F1F1F', synLink: '#036A96'
+          synParameter: '#1F1F1F', synPunctuation: '#1F1F1F', synLink: '#036A96', fill: '#FFFBEB', fillHover: '#E7E1CC'
         },
         dark: {
           accent: '#BD93F9', link: '#8BE9FD', base: '#21222C', layer1: '#282A36', layer2: '#343746',
@@ -443,7 +456,7 @@ window.__ModuleLoader__.load({
           codeBlock: '#282A36', codeBanner: '#343746', inlineCode: '#282A36', diffAdded: '#50FA7B2E', diffDeleted: '#FF55552E',
           scrollbar: '#5F6270', scrollbarHover: '#7C7F8C', synForeground: '#F8F8F2', synBackground: '#282A36', synComment: '#7B87B8',
           synString: '#F1FA8C', synStringExpr: '#F8F8F2', synKeyword: '#FF79C6', synConstant: '#BD93F9', synFunction: '#50FA7B',
-          synParameter: '#F8F8F2', synPunctuation: '#F8F8F2', synLink: '#8BE9FD'
+          synParameter: '#F8F8F2', synPunctuation: '#F8F8F2', synLink: '#8BE9FD', fill: '#21222C', fillHover: '#343746'
         },
       },
       {
@@ -456,7 +469,7 @@ window.__ModuleLoader__.load({
           codeBlock: '#E5E9F0', codeBanner: '#D8DEE9', inlineCode: '#E5E9F0', diffAdded: '#4E7A3A26', diffDeleted: '#A54A5226',
           scrollbar: '#AEB5C3', scrollbarHover: '#929AAA', synForeground: '#2E3440', synBackground: '#E5E9F0', synComment: '#5A6478',
           synString: '#4E7A3A', synStringExpr: '#4E7A3A', synKeyword: '#4C6E95', synConstant: '#8A6BA8', synFunction: '#3E6E80',
-          synParameter: '#2E3440', synPunctuation: '#2E3440', synLink: '#4C6E95'
+          synParameter: '#2E3440', synPunctuation: '#2E3440', synLink: '#4C6E95', fill: '#ECEFF4', fillHover: '#D8DEE9'
         },
         dark: {
           accent: '#88C0D0', link: '#88C0D0', base: '#2E3440', layer1: '#3B4252', layer2: '#434C5E',
@@ -466,7 +479,7 @@ window.__ModuleLoader__.load({
           codeBlock: '#3B4252', codeBanner: '#434C5E', inlineCode: '#3B4252', diffAdded: '#A3BE8C2E', diffDeleted: '#BF616A2E',
           scrollbar: '#626B7D', scrollbarHover: '#778092', synForeground: '#D8DEE9', synBackground: '#3B4252', synComment: '#8FA0B8',
           synString: '#A3BE8C', synStringExpr: '#D8DEE9', synKeyword: '#81A1C1', synConstant: '#B48EAD', synFunction: '#88C0D0',
-          synParameter: '#D8DEE9', synPunctuation: '#D8DEE9', synLink: '#88C0D0'
+          synParameter: '#D8DEE9', synPunctuation: '#D8DEE9', synLink: '#88C0D0', fill: '#2E3440', fillHover: '#434C5E'
         },
       },
       {
@@ -479,7 +492,7 @@ window.__ModuleLoader__.load({
           codeBlock: '#F6F8FA', codeBanner: '#EAEEF2', inlineCode: '#F6F8FA', diffAdded: '#1A7F3726', diffDeleted: '#CF222E26',
           scrollbar: '#BEC3C9', scrollbarHover: '#A1A7AE', synForeground: '#1F2328', synBackground: '#F6F8FA', synComment: '#6E7781',
           synString: '#0A3069', synStringExpr: '#0A3069', synKeyword: '#CF222E', synConstant: '#0550AE', synFunction: '#8250DF',
-          synParameter: '#1F2328', synPunctuation: '#1F2328', synLink: '#0969DA'
+          synParameter: '#1F2328', synPunctuation: '#1F2328', synLink: '#0969DA', fill: '#FFFFFF', fillHover: '#EAEEF2'
         },
         dark: {
           accent: '#58A6FF', link: '#58A6FF', base: '#0D1117', layer1: '#161B22', layer2: '#21262D',
@@ -489,7 +502,7 @@ window.__ModuleLoader__.load({
           codeBlock: '#161B22', codeBanner: '#21262D', inlineCode: '#161B22', diffAdded: '#3FB9502E', diffDeleted: '#F851492E',
           scrollbar: '#434850', scrollbarHover: '#595F67', synForeground: '#E6EDF3', synBackground: '#161B22', synComment: '#8B949E',
           synString: '#A5D6FF', synStringExpr: '#E6EDF3', synKeyword: '#FF7B72', synConstant: '#79C0FF', synFunction: '#D2A8FF',
-          synParameter: '#E6EDF3', synPunctuation: '#E6EDF3', synLink: '#58A6FF'
+          synParameter: '#E6EDF3', synPunctuation: '#E6EDF3', synLink: '#58A6FF', fill: '#0D1117', fillHover: '#21262D'
         },
       },
       {
@@ -502,7 +515,7 @@ window.__ModuleLoader__.load({
           codeBlock: '#E6E9EF', codeBanner: '#DCE0E8', inlineCode: '#E6E9EF', diffAdded: '#3A8F2726', diffDeleted: '#D20F3926',
           scrollbar: '#B7BBC7', scrollbarHover: '#9FA2B1', synForeground: '#4C4F69', synBackground: '#E6E9EF', synComment: '#6A6D80',
           synString: '#3A8F27', synStringExpr: '#3A8F27', synKeyword: '#8839EF', synConstant: '#C24E00', synFunction: '#1E66F5',
-          synParameter: '#4C4F69', synPunctuation: '#4C4F69', synLink: '#14708A'
+          synParameter: '#4C4F69', synPunctuation: '#4C4F69', synLink: '#14708A', fill: '#EFF1F5', fillHover: '#DCE0E8'
         },
         dark: {
           accent: '#89B4FA', link: '#74C7EC', base: '#1E1E2E', layer1: '#313244', layer2: '#45475A',
@@ -512,7 +525,7 @@ window.__ModuleLoader__.load({
           codeBlock: '#181825', codeBanner: '#1E1E2E', inlineCode: '#181825', diffAdded: '#A6E3A12E', diffDeleted: '#F38BA82E',
           scrollbar: '#62667B', scrollbarHover: '#767A91', synForeground: '#CDD6F4', synBackground: '#181825', synComment: '#7F849C',
           synString: '#A6E3A1', synStringExpr: '#CDD6F4', synKeyword: '#CBA6F7', synConstant: '#FAB387', synFunction: '#89B4FA',
-          synParameter: '#CDD6F4', synPunctuation: '#CDD6F4', synLink: '#74C7EC'
+          synParameter: '#CDD6F4', synPunctuation: '#CDD6F4', synLink: '#74C7EC', fill: '#1E1E2E', fillHover: '#45475A'
         },
       },
     ]
@@ -554,6 +567,12 @@ window.__ModuleLoader__.load({
         // 没声明的字段 put() 会跳过——所以只有声明了它们的预设才覆盖外围。
         for (const map of [TOKEN, TOKEN_MORE]) {
           for (const key of Object.keys(map)) put(map[key], preset.light[key], preset.dark[key])
+        }
+        for (const name of Object.keys(STATIC_FILLS)) {
+          const spec = STATIC_FILLS[name]
+          put(name,
+            spec.mode === 'light' ? preset.light[spec.field] : spec.other,
+            spec.mode === 'dark' ? preset.dark[spec.field] : spec.other)
         }
       }
       if (values.uiFont) put('--dsw-font-family', values.uiFont, values.uiFont)
